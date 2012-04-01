@@ -639,24 +639,20 @@ public class MemcachedConnection extends SpyThread {
     addOperation(key, o);
   }
 
-  /**
-   * Add an operation to the given connection.
-   *
-   * @param key the key the operation is operating upon
-   * @param o the operation
-   */
-  protected void addOperation(final String key, final Operation o) {
+  public void enqueueOperation(MemcachedNode node, Operation o) {
+    checkState();
+    addOperation(node, o);
+  }
 
+  protected MemcachedNode selectNode(final String key) {
     MemcachedNode placeIn = null;
     MemcachedNode primary = locator.getPrimary(key);
     if (primary.isActive() || failureMode == FailureMode.Retry) {
       placeIn = primary;
-    } else if (failureMode == FailureMode.Cancel) {
-      o.cancel();
-    } else {
+    } else if (failureMode != FailureMode.Cancel) {
       // Look for another node in sequence that is ready.
       for (Iterator<MemcachedNode> i = locator.getSequence(key); placeIn == null
-          && i.hasNext();) {
+              && i.hasNext();) {
         MemcachedNode n = i.next();
         if (n.isActive()) {
           placeIn = n;
@@ -667,11 +663,23 @@ public class MemcachedConnection extends SpyThread {
       if (placeIn == null) {
         placeIn = primary;
         this.getLogger().warn(
-            "Could not redistribute "
-                + "to another node, retrying primary node for %s.", key);
+                "Could not redistribute "
+                        + "to another node, retrying primary node for %s.", key);
       }
     }
 
+    return placeIn;
+  }
+
+  /**
+   * Add an operation to the given connection.
+   *
+   * @param key the key the operation is operating upon
+   * @param o the operation
+   */
+  protected void addOperation(final String key, final Operation o) {
+    MemcachedNode placeIn = selectNode(key);
+    if (placeIn == null && failureMode == FailureMode.Cancel) o.cancel();
     assert o.isCancelled() || placeIn != null : "No node found for key " + key;
     if (placeIn != null) {
       addOperation(placeIn, o);
