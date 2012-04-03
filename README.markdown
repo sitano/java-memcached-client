@@ -4,6 +4,9 @@
 - gets bulk support (multi-get with provided cas values, tested only for binary protocol)
 - CAS values for any of data update op supported by binary protocol: add, set, replace, cat (prepend/append))
 - Group Key (single locator per request) support for any operations set
+- No noisy binary store operations optimizations (they are forbidden due to lack of valid multi-status response) 
+(no CAS values in response)
+- PLANNED: quite operations API (with DELETE included)
 
 # Building
 

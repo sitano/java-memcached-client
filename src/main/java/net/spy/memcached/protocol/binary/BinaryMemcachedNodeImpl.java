@@ -56,8 +56,6 @@ public class BinaryMemcachedNodeImpl extends TCPMemcachedNodeImpl {
     Operation firstOp = writeQ.peek();
     if (firstOp instanceof GetOperation) {
       optimizeGets();
-    } else if (firstOp instanceof CASOperation) {
-      optimizeSets();
     }
   }
 
@@ -86,6 +84,12 @@ public class BinaryMemcachedNodeImpl extends TCPMemcachedNodeImpl {
     }
   }
 
+  /**
+   * @deprecated no one should optimize protocol the way it gets you to the reduction
+   * of the functionality. optimized sets are silent sets. silent sets will never give
+   * you back CAS values on ops. so, there should be separate api for silent ops.
+   */
+  @Deprecated
   private void optimizeSets() {
     // make sure there are at least two get operations in a row before
     // attempting to optimize them.
