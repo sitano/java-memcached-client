@@ -23,36 +23,42 @@
 
 package net.spy.memcached.protocol.binary;
 
-import net.spy.memcached.ops.DeleteOperation;
 import net.spy.memcached.ops.OperationCallback;
+import net.spy.memcached.ops.StoreType;
 
-class DeleteOperationImpl extends SingleKeyOperationImpl implements
-    DeleteOperation {
+class QuietStoreOperationImpl extends StoreOperationImpl {
+  static final byte SETQ = 0x11;
+  static final byte ADDQ = 0x12;
+  static final byte REPLACEQ = 0x13;
 
-  private static final byte CMD = 0x04;
-
-  private final long cas;
-
-  protected DeleteOperationImpl(byte cmd, String k, long c, OperationCallback cb) {
-    super(cmd, generateOpaque(), k, cb);
-    this.cas = c;
+  private static byte cmdMap(StoreType t) {
+    byte rv;
+    switch (t) {
+    case set:
+      rv = SETQ;
+      break;
+    case add:
+      rv = ADDQ;
+      break;
+    case replace:
+      rv = REPLACEQ;
+      break;
+    default:
+      rv = DUMMY_OPCODE;
+    }
+    // Check fall-through.
+    assert rv != DUMMY_OPCODE : "Unhandled store type:  " + t;
+    return rv;
   }
 
-  public DeleteOperationImpl(String k, OperationCallback cb) {
-    this(CMD, k, 0, cb);
-  }
-
-  public DeleteOperationImpl(String k, long c, OperationCallback cb) {
-    this(CMD, k, c, cb);
+  public QuietStoreOperationImpl(StoreType t, String k,
+      int f, int e, byte[] d, long c,
+      OperationCallback cb) {
+    super(t, cmdMap(t), k, f, e, d, c, cb);
   }
 
   @Override
-  public void initialize() {
-    prepareBuffer(key, cas, EMPTY_BYTES);
-  }
-
-  @Override
-  public String toString() {
-    return super.toString() + " Cas: " + cas;
+  public boolean isQuiet() {
+    return true;
   }
 }

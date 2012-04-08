@@ -54,12 +54,19 @@ class ConcatenationOperationImpl extends SingleKeyOperationImpl implements
     return rv;
   }
 
-  public ConcatenationOperationImpl(ConcatenationType t, String k, byte[] d,
-      long c, OperationCallback cb) {
-    super(cmdMap(t), generateOpaque(), k, cb);
+  protected ConcatenationOperationImpl(ConcatenationType t, byte cmd,
+      String k, byte[] d, long c,
+      OperationCallback cb) {
+    super(cmd, generateOpaque(), k, cb);
     data = d;
     cas = c;
     catType = t;
+  }
+
+  public ConcatenationOperationImpl(ConcatenationType t,
+      String k, byte[] d, long c,
+      OperationCallback cb) {
+    this(t, cmdMap(t), k, d, c, cb);
   }
 
   @Override

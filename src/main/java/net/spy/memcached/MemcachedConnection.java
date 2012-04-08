@@ -429,7 +429,7 @@ public class MemcachedConnection extends SpyThread {
     throws IOException {
     Operation currentOp = qa.getCurrentReadOp();
     // If it's a tap ack there is no response
-    if (currentOp instanceof TapAckOperationImpl) {
+    if (currentOp.isQuiet()) {
       qa.removeCurrentReadOp();
       return;
     }

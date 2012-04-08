@@ -39,14 +39,21 @@ class MutatorOperationImpl extends SingleKeyOperationImpl implements
   private final int exp;
   private final long def;
 
-  public MutatorOperationImpl(Mutator m, String k, long b, long d, int e,
+  protected MutatorOperationImpl(Mutator m, byte cmd,
+      String k, long b, long d, int e,
       OperationCallback cb) {
-    super(m == Mutator.incr ? CMD_INCR : CMD_DECR, generateOpaque(), k, cb);
+    super(cmd, generateOpaque(), k, cb);
     assert d >= 0 : "Default value is below zero";
     mutator = m;
     by = b;
     exp = e;
     def = d;
+  }
+
+  public MutatorOperationImpl(Mutator m,
+      String k, long b, long d, int e,
+      OperationCallback cb) {
+    this(m, m == Mutator.incr ? CMD_INCR : CMD_DECR, k, b, d, e, cb);
   }
 
   @Override

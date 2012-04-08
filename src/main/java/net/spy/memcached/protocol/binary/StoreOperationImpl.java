@@ -35,10 +35,6 @@ class StoreOperationImpl extends SingleKeyOperationImpl implements
   private static final byte ADD = 0x02;
   private static final byte REPLACE = 0x03;
 
-  static final byte SETQ = 0x11;
-  static final byte ADDQ = 0x12;
-  static final byte REPLACEQ = 0x13;
-
   // 4-byte flags, 4-byte expiration
   static final int EXTRA_LEN = 8;
 
@@ -68,14 +64,21 @@ class StoreOperationImpl extends SingleKeyOperationImpl implements
     return rv;
   }
 
-  public StoreOperationImpl(StoreType t, String k, int f, int e, byte[] d,
-      long c, OperationCallback cb) {
-    super(cmdMap(t), generateOpaque(), k, cb);
+  protected StoreOperationImpl(StoreType t, byte cmd,
+      String k, int f, int e, byte[] d, long c,
+      OperationCallback cb) {
+    super(cmd, generateOpaque(), k, cb);
     flags = f;
     exp = e;
     data = d;
     cas = c;
     storeType = t;
+  }
+
+  public StoreOperationImpl(StoreType t,
+      String k, int f, int e, byte[] d, long c,
+      OperationCallback cb) {
+    this(t, cmdMap(t), k, f, e, d, c, cb);
   }
 
   @Override

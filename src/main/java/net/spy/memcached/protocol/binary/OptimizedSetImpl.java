@@ -128,13 +128,13 @@ public class OptimizedSetImpl extends MultiKeyOperationImpl {
     byte rv;
     switch (t) {
     case set:
-      rv = StoreOperationImpl.SETQ;
+      rv = QuietStoreOperationImpl.SETQ;
       break;
     case add:
-      rv = StoreOperationImpl.ADDQ;
+      rv = QuietStoreOperationImpl.ADDQ;
       break;
     case replace:
-      rv = StoreOperationImpl.REPLACEQ;
+      rv = QuietStoreOperationImpl.REPLACEQ;
       break;
     default:
       rv = DUMMY_OPCODE;

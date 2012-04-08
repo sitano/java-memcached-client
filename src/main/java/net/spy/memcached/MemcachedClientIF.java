@@ -54,6 +54,8 @@ public interface MemcachedClientIF {
 
   MemcachedClientIF getGroupKey(String key);
 
+  MemcachedClientIF getQuietClient();
+
   Future<CASResponse> append(long cas, String key, Object val);
 
   <T> Future<CASResponse> append(long cas, String key, T val, Transcoder<T> tc);

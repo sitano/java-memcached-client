@@ -45,6 +45,11 @@ public class TapAckOperationImpl extends TapOperationImpl {
   }
 
   @Override
+  public boolean isQuiet() {
+    return true;
+  }
+
+  @Override
   public void initialize() {
     RequestMessage message = new RequestMessage();
     message.setMagic(TapMagic.PROTOCOL_BINARY_RES);
@@ -58,7 +63,6 @@ public class TapAckOperationImpl extends TapOperationImpl {
     // Do Nothing
   }
 
-  @Override
   public void streamClosed(OperationState state) {
     transitionState(state);
   }

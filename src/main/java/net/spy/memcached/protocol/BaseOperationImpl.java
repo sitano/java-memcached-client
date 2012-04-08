@@ -69,6 +69,13 @@ public abstract class BaseOperationImpl extends SpyObject implements Operation {
   }
 
   /**
+   * If operation is quite, server will not send a response
+   */
+  public boolean isQuiet() {
+    return false;
+  }
+
+  /**
    * Get the operation callback associated with this operation.
    */
   public final OperationCallback getCallback() {

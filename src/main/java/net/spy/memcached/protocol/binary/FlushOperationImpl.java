@@ -27,17 +27,20 @@ import net.spy.memcached.ops.FlushOperation;
 import net.spy.memcached.ops.OperationCallback;
 
 class FlushOperationImpl extends OperationImpl implements FlushOperation {
-
   private static final byte CMD = 0x08;
   private final int delay;
 
+  protected FlushOperationImpl(byte cmd, int d, OperationCallback cb) {
+    super(cmd, generateOpaque(), cb);
+    this.delay = d;
+  }
+
   public FlushOperationImpl(OperationCallback cb) {
-    this(0, cb);
+    this(CMD, 0, cb);
   }
 
   public FlushOperationImpl(int d, OperationCallback cb) {
-    super(CMD, generateOpaque(), cb);
-    delay = d;
+    this(CMD, d, cb);
   }
 
   @Override

@@ -33,6 +33,11 @@ import net.spy.memcached.MemcachedNode;
  */
 public interface Operation {
   /**
+   * If operation is quite, server will not send a response
+   */
+  boolean isQuiet();
+
+  /**
    * Cas responded by server
    */
   long getResponseCas();

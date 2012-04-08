@@ -240,9 +240,8 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
           assert o == timedOutOp;
         } else {
           o.writing();
-          if (!(o instanceof TapAckOperationImpl)) {
-            readQ.add(o);
-          }
+          // If it's a tap ack there is no response
+          if (!o.isQuiet()) readQ.add(o);
           return o;
         }
         o = getCurrentWriteOp();
