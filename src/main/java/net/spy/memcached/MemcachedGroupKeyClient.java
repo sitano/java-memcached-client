@@ -292,7 +292,11 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     final Map<String, Transcoder<T>> tcMap = new HashMap<String, Transcoder<T>>();
 
     final Collection<String> keys = new ArrayList<String>();
-    while (keyIter.hasNext()) keys.add(keyIter.next());
+    while (keyIter.hasNext() && tcIter.hasNext()) {
+        String key = keyIter.next();
+        keys.add(key);
+        tcMap.put(key, tcIter.next());
+    }
 
     final CountDownLatch latch = new CountDownLatch(1);
     final Collection<Operation> ops = new ArrayList<Operation>(1);
@@ -340,7 +344,11 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
 
     // Break the gets down into groups by key
     final Collection<String> keys = new ArrayList<String>();
-    while (keyIter.hasNext()) keys.add(keyIter.next());
+      while (keyIter.hasNext() && tcIter.hasNext()) {
+          String key = keyIter.next();
+          keys.add(key);
+          tcMap.put(key, tcIter.next());
+      }
 
     final CountDownLatch latch = new CountDownLatch(1);
     final Collection<Operation> ops = new ArrayList<Operation>(1);
