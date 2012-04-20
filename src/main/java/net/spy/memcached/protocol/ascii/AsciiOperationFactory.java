@@ -68,6 +68,10 @@ public class AsciiOperationFactory extends BaseOperationFactory {
     return new DeleteOperationImpl(key, cb);
   }
 
+  public DeleteOperation deleteQuiet(String key) {
+    throw new UnsupportedOperationException();
+  }
+
   public FlushOperation flush(int delay, OperationCallback cb) {
     return new FlushOperationImpl(delay, cb);
   }

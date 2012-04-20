@@ -33,9 +33,9 @@ import java.util.*;
 import java.util.concurrent.*;
 
 class MemcachedQuietClient implements MemcachedClientIF {
-  private final MemcachedClient client;
+  protected final MemcachedClient client;
 
-  public MemcachedQuietClient(MemcachedClient client) {
+  MemcachedQuietClient(MemcachedClient client) {
     this.client = client;
   }
 
@@ -528,11 +528,11 @@ class MemcachedQuietClient implements MemcachedClientIF {
   }
 
   public OperationFuture<CASResponse> delete(String key) {
-    throw new UnsupportedOperationException();     // TODO: clent.delete(key, null);
+    return client.delete(null, true, key, null);
   }
 
   public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    throw new UnsupportedOperationException();     // TODO: clent.delete(groupNode, key, listener);
+    return client.delete(null, true, key, null);
   }
 
   public OperationFuture<Boolean> flush(final int delay) {

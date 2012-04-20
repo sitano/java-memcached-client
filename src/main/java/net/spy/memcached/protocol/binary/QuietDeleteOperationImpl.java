@@ -23,16 +23,23 @@
 
 package net.spy.memcached.protocol.binary;
 
+import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationCallback;
+import net.spy.memcached.ops.OperationStatus;
 
 class QuietDeleteOperationImpl extends DeleteOperationImpl {
   private static final byte CMDQ = 0x14;
 
-  public QuietDeleteOperationImpl(String k, OperationCallback cb) {
+  private static OperationCallback cb = new OperationCallback() {
+    public void receivedStatus(Operation operation, OperationStatus status) { }
+    public void complete(Operation operation) { }
+  };
+
+  public QuietDeleteOperationImpl(String k) {
     super(CMDQ, k, 0, cb);
   }
 
-  public QuietDeleteOperationImpl(String k, long c, OperationCallback cb) {
+  public QuietDeleteOperationImpl(String k, long c) {
     super(CMDQ, k, c, cb);
   }
 

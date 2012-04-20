@@ -2608,15 +2608,18 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    return delete(null, key, listener);
+    return delete(null, false, key, listener);
   }
 
-  protected OperationFuture<CASResponse> delete(MemcachedNode opNode, String key, final OperationListener<CASResponse> listener) {
+  protected OperationFuture<CASResponse> delete(MemcachedNode opNode, boolean quite,
+                                                String key, final OperationListener<CASResponse> listener) {
     final MemcachedClient client = this;
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key,
             latch, operationTimeout);
-    DeleteOperation op = opFact.delete(key, new OperationCallback() {
+    DeleteOperation op = quite
+        ? opFact.deleteQuiet(key)
+        : opFact.delete(key, new OperationCallback() {
       public void receivedStatus(Operation op, OperationStatus s) {
         rv.set(new CASResponse(s.isSuccess(), op.getResponseCas()), s);
       }

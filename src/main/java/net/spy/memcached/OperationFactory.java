@@ -78,6 +78,14 @@ public interface OperationFactory {
   DeleteOperation delete(String key, OperationCallback operationCallback);
 
   /**
+   * Create a quite deletion operation.
+   *
+   * @param key the key to delete
+   * @return the new DeleteOperation
+   */
+  DeleteOperation deleteQuiet(String key);
+
+  /**
    * Create a Unlock operation.
    *
    * @param key the key to delete

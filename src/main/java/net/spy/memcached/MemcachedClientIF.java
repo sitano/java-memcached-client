@@ -233,13 +233,29 @@ public interface MemcachedClientIF {
 
   long decr(String key, int by, long def);
 
+  /**
+   * Delete the given key from the cache.
+   *
+   * @param key the key to delete
+   * @return whether or not the operation was performed
+   * @throws IllegalStateException in the rare circumstance where queue is too
+   *           full to accept any more requests
+   */
   Future<CASResponse> delete(String key);
+
+  /**
+   * Delete the given key from the cache.
+   *
+   * @param key the key to delete
+   * @return whether or not the operation was performed
+   * @throws IllegalStateException in the rare circumstance where queue is too
+   *           full to accept any more requests
+   */
+  Future<CASResponse> delete(String key, OperationListener<CASResponse> listener);
 
   Future<Boolean> flush(int delay);
 
   Future<Boolean> flush();
-
-  Future<CASResponse> delete(String key, OperationListener<CASResponse> listener);
 
   void shutdown();
 
