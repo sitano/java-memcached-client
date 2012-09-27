@@ -2100,6 +2100,18 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   }
 
   /**
+   * Get all of the local stats from all of the connections. This will not 
+   * send a call to server but report only stats that are known to client.
+   * The stats are grouped by Node (SocketAddress) and Stat ID
+   *
+   * @return a Map of a Map of stats by Node
+   * 
+   */
+  public List<LocalStatNode> getLocalStats() {
+    return mconn.getLocalStats();
+  }
+  
+  /**
    * Get all of the stats from all of the connections.
    *
    * @return a Map of a Map of stats replies by SocketAddress

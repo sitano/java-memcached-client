@@ -37,6 +37,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -56,7 +57,6 @@ import net.spy.memcached.ops.OperationException;
 import net.spy.memcached.ops.OperationState;
 import net.spy.memcached.ops.TapOperation;
 import net.spy.memcached.ops.VBucketAware;
-import net.spy.memcached.protocol.binary.TapAckOperationImpl;
 import net.spy.memcached.util.StringUtils;
 
 /**
@@ -860,5 +860,19 @@ public class MemcachedConnection extends SpyThread {
     } else {
       getLogger().warn("Problem handling memcached IO", e);
     }
+  }
+  
+  /**
+   * Get all of the local stats from all of the connections. This will not 
+   * send a call to server but report only stats that are known to client.
+   *
+   * @return a Map of a Map of stats by SocketAddress
+   */
+  public List<LocalStatNode> getLocalStats() {
+    Collection<MemcachedNode> nodes = locator.getAll();
+    List<LocalStatNode> stats = new ArrayList<LocalStatNode>(nodes.size());
+    for (MemcachedNode node : nodes)
+      stats.add(new LocalStatNode(node, node.getLocalStats()));
+    return stats;
   }
 }

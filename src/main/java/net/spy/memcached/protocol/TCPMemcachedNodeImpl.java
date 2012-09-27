@@ -23,6 +23,12 @@
 
 package net.spy.memcached.protocol;
 
+import net.spy.memcached.LocalStatType;
+import net.spy.memcached.MemcachedNode;
+import net.spy.memcached.compat.SpyObject;
+import net.spy.memcached.ops.Operation;
+import net.spy.memcached.ops.OperationState;
+
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -30,16 +36,12 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import net.spy.memcached.MemcachedNode;
-import net.spy.memcached.compat.SpyObject;
-import net.spy.memcached.ops.Operation;
-import net.spy.memcached.ops.OperationState;
-import net.spy.memcached.protocol.binary.TapAckOperationImpl;
 
 /**
  * Represents a node with the memcached cluster, along with buffering and
@@ -603,5 +605,13 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject implements
     } else {
       authLatch = new CountDownLatch(0);
     }
+  }
+  
+  public Map<LocalStatType, String> getLocalStats(){
+    Map <LocalStatType, String> localStatMap = new EnumMap<LocalStatType, String>(LocalStatType.class);
+    localStatMap.put(LocalStatType.WRITE_QUEUE_SIZE, String.valueOf(writeQ.size()));
+    localStatMap.put(LocalStatType.READ_QUEUE_SIZE, String.valueOf(readQ.size()));
+    localStatMap.put(LocalStatType.INPUT_QUEUE_SIZE, String.valueOf(inputQueue.size()));
+    return localStatMap;
   }
 }

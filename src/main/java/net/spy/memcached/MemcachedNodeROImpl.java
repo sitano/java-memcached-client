@@ -29,6 +29,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.Map;
 
 import net.spy.memcached.ops.Operation;
 
@@ -176,5 +177,9 @@ class MemcachedNodeROImpl implements MemcachedNode {
 
   public void setContinuousTimeout(boolean isIncrease) {
     throw new UnsupportedOperationException();
+  }
+
+  public Map<LocalStatType, String> getLocalStats(){
+    return root.getLocalStats();
   }
 }

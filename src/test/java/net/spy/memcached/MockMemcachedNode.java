@@ -30,6 +30,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.EnumMap;
+import java.util.Map;
 
 import net.spy.memcached.ops.Operation;
 
@@ -197,5 +199,13 @@ public class MockMemcachedNode implements MemcachedNode {
 
   public void setContinuousTimeout(boolean timedOut) {
     // noop
+  }
+
+  public Map<LocalStatType, String> getLocalStats() {
+    Map <LocalStatType, String> localStatMap = new EnumMap<LocalStatType, String>(LocalStatType.class);
+    localStatMap.put(LocalStatType.WRITE_QUEUE_SIZE, String.valueOf(0));
+    localStatMap.put(LocalStatType.READ_QUEUE_SIZE, String.valueOf(0));
+    localStatMap.put(LocalStatType.INPUT_QUEUE_SIZE, String.valueOf(0));
+    return localStatMap;
   }
 }
