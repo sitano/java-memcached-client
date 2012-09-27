@@ -74,7 +74,7 @@ public class BinaryOperationFactory extends BaseOperationFactory {
   }
 
   public UnlockOperation unlock(String key, long casId,
-          OperationCallback cb) {
+      OperationCallback cb) {
     return new UnlockOperationImpl(key, casId, cb);
   }
   public FlushOperation flush(int delay, OperationCallback cb) {
@@ -150,11 +150,9 @@ public class BinaryOperationFactory extends BaseOperationFactory {
     GetOperation.Callback getCb = null;
     GetsOperation.Callback getsCb = null;
     if (op.getCallback() instanceof GetOperation.Callback) {
-      getCb =
-          new MultiGetOperationCallback(op.getCallback(), op.getKeys().size());
+      getCb = new MultiGetOperationCallback(op.getCallback(), op.getKeys().size());
     } else {
-      getsCb =
-          new MultiGetsOperationCallback(op.getCallback(), op.getKeys().size());
+      getsCb = new MultiGetsOperationCallback(op.getCallback(), op.getKeys().size());
     }
     for (String k : op.getKeys()) {
       rv.add(getCb == null ? gets(k, getsCb) : get(k, getCb));
@@ -182,13 +180,19 @@ public class BinaryOperationFactory extends BaseOperationFactory {
     return new TapBackfillOperationImpl(id, date, cb);
   }
 
-  public TapOperation tapCustom(String id, RequestMessage message,
-      OperationCallback cb) {
+  public TapOperation tapBackfill(String id, Map<Short,Long> checkpointMap, OperationCallback cb) {
+    return new TapBackfillOperationImpl(id, checkpointMap, cb);
+  }
+
+  public TapOperation tapCustom(String id, RequestMessage message, OperationCallback cb) {
     return new TapCustomOperationImpl(id, message, cb);
   }
 
-  public TapOperation
-  tapAck(TapOpcode opcode, int opaque, OperationCallback cb) {
+  public TapOperation tapDeregister(String id, OperationCallback cb) {
+    return new TapDeregisterOperationImpl(id, cb);
+  }
+
+  public TapOperation tapAck(TapOpcode opcode, int opaque, OperationCallback cb) {
     return new TapAckOperationImpl(opcode, opaque, cb);
   }
 

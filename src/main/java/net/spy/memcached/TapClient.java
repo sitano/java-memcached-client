@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.naming.ConfigurationException;
 
+import net.spy.memcached.compat.SpyObject;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationCallback;
 import net.spy.memcached.ops.OperationStatus;
@@ -49,7 +50,7 @@ import net.spy.memcached.tapmessage.TapStream;
 /**
  * A tap client for memcached.
  */
-public class TapClient {
+public class TapClient extends SpyObject {
   protected BlockingQueue<Object> rqueue;
   protected final HashMap<TapStream, TapConnectionProvider> omap;
   protected long messagesRead;
@@ -216,20 +217,23 @@ public class TapClient {
           final CountDownLatch latch) {
         Operation op =  conn.getOpFactory().tapDump(id,
             new TapOperation.Callback() {
-            public void receivedStatus(Operation operation, OperationStatus status) {
-            }
-            public void gotData(ResponseMessage tapMessage) {
-              rqueue.add(tapMessage);
-              messagesRead++;
-            }
-            public void gotAck(MemcachedNode node, TapOpcode opcode,
-                int opaque) {
-              rqueue.add(new TapAck(conn, node, opcode, opaque, this));
-            }
-            public void complete(Operation operation) {
-              latch.countDown();
-            }
-          });
+              public void receivedStatus(Operation operation, OperationStatus status) {
+              }
+
+              public void gotData(ResponseMessage tapMessage) {
+                rqueue.add(tapMessage);
+                messagesRead++;
+              }
+
+              public void gotAck(MemcachedNode node, TapOpcode opcode,
+                                 int opaque) {
+                rqueue.add(new TapAck(conn, node, opcode, opaque, this));
+              }
+
+              public void complete(Operation operation) {
+                latch.countDown();
+              }
+            });
         ts.addOp((TapOperation)op);
         return op;
       }
@@ -238,6 +242,27 @@ public class TapClient {
       omap.put(ts, conn);
     }
     return ts;
+  }
+
+  public void tapDeregister(final String id) throws IOException, ConfigurationException {
+    final TapConnectionProvider conn = new TapConnectionProvider(addrs);
+
+    conn.broadcastOp(new BroadcastOpFactory() {
+      public Operation newOp(final MemcachedNode n, final CountDownLatch latch) {
+        Operation op = conn.getOpFactory().tapDeregister(id, new OperationCallback() {
+          public void receivedStatus(Operation operation, OperationStatus status) {
+            System.out.println(String.format("Unregister TAP client %s returned %b from node %s",
+                id, status.isSuccess(), n));
+          }
+
+          public void complete(Operation operation) {
+            latch.countDown();
+          }
+        });
+
+        return op;
+      }
+    });
   }
 
   private void tapAck(TapConnectionProvider conn, MemcachedNode node,
