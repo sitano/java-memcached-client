@@ -1,4 +1,4 @@
-# This fork features
+# This fork features (we use it in production)
 
 - asynchronous event callbacks
 - gets bulk support (multi-get with provided cas values, tested only for binary protocol)
@@ -6,6 +6,8 @@
 - Group Key (single locator per request) support for any operations set
 - No noisy binary store operations optimizations (they are forbidden due to lack of valid multi-status response) 
 (no CAS values in response)
+- TAP unregister, backfill with checkpoints
+- nodes.getLocalStats()
 - PLANNED: quite operations API (with DELETE included)
 
 # Building
