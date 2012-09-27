@@ -137,6 +137,10 @@ public class OperationFuture<T> extends SpyObject implements Future<T> {
     op = to;
   }
 
+  public Operation getOperation() {
+    return op;
+  }
+
   public boolean isCancelled() {
     assert op != null : "No operation";
     return op.isCancelled();
