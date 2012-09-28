@@ -58,7 +58,7 @@ public class StatsOperationImpl extends OperationImpl
       cb.gotStat(new String(keyBytes, "UTF-8"), new String(data, "UTF-8"));
     } else {
       OperationStatus status = getStatusForErrorCode(errorCode, pl);
-      getCallback().receivedStatus(status);
+      getCallback().receivedStatus(this, status);
       transitionState(OperationState.COMPLETE);
     }
     resetInput();

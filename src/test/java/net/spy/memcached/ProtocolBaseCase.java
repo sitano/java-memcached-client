@@ -884,9 +884,7 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
   }
 
   public void testSetReturnsCAS() throws Exception {
-
-    OperationFuture<Boolean> setOp = client.set("testSetReturnsCAS",
-            0, "testSetReturnsCAS");
+    OperationFuture<CASResponse> setOp = client.set("testSetReturnsCAS", 0, "testSetReturnsCAS");
     setOp.get();
     assertTrue(setOp.getCas() > 0);
   }

@@ -114,7 +114,6 @@ public class ResponseMessage extends BaseMessage {
       vbucketstate = decodeInt(b, ITEM_FLAGS_OFFSET);
       checkpoint = 0;
       key = new byte[0];
-      key = new byte[0];
       value = new byte[0];
       revid = new byte[0];
     } else if (opcode.equals(TapOpcode.START_CHECKPOINT)
