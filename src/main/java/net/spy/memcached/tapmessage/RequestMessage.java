@@ -80,8 +80,8 @@ public class RequestMessage extends BaseMessage{
         totalbody += 2;
       }
       if (f.equals(TapRequestFlag.CHECKPOINT)) {
-          hasVBucketCheckpoints = true;
-          totalbody += 2;
+        hasVBucketCheckpoints = true;
+        totalbody += 2;
       }
       flagList.add(f);
     }
@@ -118,7 +118,7 @@ public class RequestMessage extends BaseMessage{
   }
 
   /**
-   * Sets a map of vbucket checkpoints
+   * Sets a map of vbucket checkpoints.
    *
    * @param vbchkpnts - A map of vbucket checkpoint identifiers
    */

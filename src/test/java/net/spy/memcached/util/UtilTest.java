@@ -1,5 +1,4 @@
 /**
- * Copyright (C) 2006-2009 Dustin Sallings
  * Copyright (C) 2009-2012 Couchbase, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,53 +20,33 @@
  * IN THE SOFTWARE.
  */
 
-package net.spy.memcached.ops;
+package net.spy.memcached.util;
 
-import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedList;
+
+import junit.framework.TestCase;
+
+import org.junit.Test;
 
 /**
- * Exceptions thrown when protocol errors occur.
+ * Test various classes in the net.spy.memcached.util package.
  */
-public class OperationException extends IOException {
-
-  private static final long serialVersionUID = 1524499960923239786L;
-
-  private final OperationErrorType type;
-
-  /**
-   * General exception (no message).
-   */
-  public OperationException() {
-    super();
-    type = OperationErrorType.GENERAL;
+public class UtilTest extends TestCase {
+  public void setup() {
+    // Empty
   }
 
-  /**
-   * Exception with a message.
-   *
-   * @param eType the type of error that occurred
-   * @param msg the error message
-   */
-  public OperationException(OperationErrorType eType, String msg) {
-    super(msg);
-    type = eType;
+  public void teardown() {
+    // Empty
   }
 
-  /**
-   * Get the type of error.
-   */
-  public OperationErrorType getType() {
-    return type;
-  }
-
-  @Override
-  public String toString() {
-    String rv = null;
-    if (type == OperationErrorType.GENERAL) {
-      rv = "OperationException: " + type;
-    } else {
-      rv = "OperationException: " + type + ": " + getMessage();
-    }
-    return rv;
+  @Test
+  public void testJoin() {
+    Collection<String> keys = new LinkedList<String>();
+    keys.add("key1");
+    keys.add("key2");
+    keys.add("key3");
+    assertEquals("key1,key2,key3", StringUtils.join(keys, ","));
   }
 }
