@@ -51,6 +51,10 @@ class MemcachedQuietClient implements MemcachedClientIF {
     return client.getNodeLocator();
   }
 
+  public MemcachedClient getClient() {
+    return client;
+  }
+
   public MemcachedClientIF getGroupKey(String key) {
     throw new UnsupportedOperationException();
   }
@@ -528,11 +532,11 @@ class MemcachedQuietClient implements MemcachedClientIF {
   }
 
   public OperationFuture<CASResponse> delete(String key) {
-    return client.delete(null, true, key, null);
+    return client.delete(this, null, true, key, null);
   }
 
   public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    return client.delete(null, true, key, null);
+    return client.delete(this, null, true, key, null);
   }
 
   public OperationFuture<Boolean> flush(final int delay) {

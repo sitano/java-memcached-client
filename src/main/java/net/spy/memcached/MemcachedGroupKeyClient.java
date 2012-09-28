@@ -64,6 +64,18 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return client.getNodeLocator();
   }
 
+  public MemcachedNode getGroupNode() {
+    return groupNode;
+  }
+
+  public MemcachedClient getClient() {
+    return client;
+  }
+
+  public String getGroupKey() {
+    return groupKey;
+  }
+
   public MemcachedClientIF getGroupKey(String key) {
     StringUtils.validateKey(key);
     if (key.equals(groupKey)) return this;
@@ -79,7 +91,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
   }
 
   private OperationFuture<CASResponse> asyncStore(StoreType storeType, String key, int exp, Object value) {
-    return client.asyncStore(groupNode, storeType, key, exp, value, client.getTranscoder(), null);
+    return client.asyncStore(this, groupNode, storeType, key, exp, value, client.getTranscoder(), null);
   }
 
   public <T> OperationFuture<CASResponse> touch(final String key, final int exp) {
@@ -90,9 +102,8 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return touch(key, exp, client.getTranscoder(), null);
   }
 
-  public <T> OperationFuture<CASResponse> touch(final String key, final int exp,
-                                                final Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    return client.touch(groupNode, key, exp, tc, listener);
+  public <T> OperationFuture<CASResponse> touch(final String key, final int exp, final Transcoder<T> tc, final OperationListener<CASResponse> listener) {
+    return client.touch(this, groupNode, key, exp, tc, listener);
   }
 
   public OperationFuture<CASResponse> append(long cas, String key, Object val) {
@@ -100,11 +111,11 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
   }
 
   public <T> OperationFuture<CASResponse> append(long cas, String key, T val, Transcoder<T> tc) {
-    return client.asyncCat(groupNode, ConcatenationType.append, cas, key, val, tc, null);
+    return client.asyncCat(this, groupNode, ConcatenationType.append, cas, key, val, tc, null);
   }
 
   public <T> OperationFuture<CASResponse> append(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return client.asyncCat(groupNode, ConcatenationType.append, cas, key, val, tc, listener);
+    return client.asyncCat(this, groupNode, ConcatenationType.append, cas, key, val, tc, listener);
   }
 
   public OperationFuture<CASResponse> prepend(long cas, String key, Object val) {
@@ -112,11 +123,11 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
   }
 
   public <T> OperationFuture<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc) {
-    return client.asyncCat(groupNode, ConcatenationType.prepend, cas, key, val, tc, null);
+    return client.asyncCat(this, groupNode, ConcatenationType.prepend, cas, key, val, tc, null);
   }
 
   public <T> OperationFuture<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return client.asyncCat(groupNode, ConcatenationType.prepend, cas, key, val, tc, listener);
+    return client.asyncCat(this, groupNode, ConcatenationType.prepend, cas, key, val, tc, listener);
   }
 
   public <T> Future<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc, OperationListener<CASResponse> listener) {
@@ -127,9 +138,8 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return asyncCAS(key, casId, 0, value, tc, null);
   }
 
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
-                                          T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    return client.asyncCAS(groupNode, key, casId, exp, value, tc, listener);
+  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp, T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
+    return client.asyncCAS(this, groupNode, key, casId, exp, value, tc, listener);
   }
 
   public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
@@ -166,48 +176,48 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
 
   public <T> OperationFuture<CASResponse> add(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return client.asyncStore(groupNode, StoreType.add, key, exp, o, tc, listener);
+    return client.asyncStore(this, groupNode, StoreType.add, key, exp, o, tc, listener);
   }
 
   public <T> OperationFuture<CASResponse> add(String key, int exp, T o,
       Transcoder<T> tc) {
-    return client.asyncStore(groupNode, StoreType.add, key, exp, o, tc, null);
+    return client.asyncStore(this, groupNode, StoreType.add, key, exp, o, tc, null);
   }
 
   public OperationFuture<CASResponse> add(String key, int exp, Object o) {
-    return client.asyncStore(groupNode, StoreType.add, key, exp, o, client.getTranscoder(), null);
+    return client.asyncStore(this, groupNode, StoreType.add, key, exp, o, client.getTranscoder(), null);
   }
 
   public <T> OperationFuture<CASResponse> set(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return client.asyncStore(groupNode, StoreType.set, key, exp, o, tc, listener);
+    return client.asyncStore(this, groupNode, StoreType.set, key, exp, o, tc, listener);
   }
 
   public <T> OperationFuture<CASResponse> set(String key, int exp, T o,
       Transcoder<T> tc) {
-    return client.asyncStore(groupNode, StoreType.set, key, exp, o, tc, null);
+    return client.asyncStore(this, groupNode, StoreType.set, key, exp, o, tc, null);
   }
 
   public OperationFuture<CASResponse> set(String key, int exp, Object o) {
-    return client.asyncStore(groupNode, StoreType.set, key, exp, o, client.getTranscoder(), null);
+    return client.asyncStore(this, groupNode, StoreType.set, key, exp, o, client.getTranscoder(), null);
   }
 
   public <T> OperationFuture<CASResponse> replace(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return client.asyncStore(groupNode, StoreType.replace, key, exp, o, tc, listener);
+    return client.asyncStore(this, groupNode, StoreType.replace, key, exp, o, tc, listener);
   }
 
   public <T> OperationFuture<CASResponse> replace(String key, int exp, T o,
       Transcoder<T> tc) {
-    return client.asyncStore(groupNode, StoreType.replace, key, exp, o, tc, null);
+    return client.asyncStore(this, groupNode, StoreType.replace, key, exp, o, tc, null);
   }
 
   public OperationFuture<CASResponse> replace(String key, int exp, Object o) {
-    return client.asyncStore(groupNode, StoreType.replace, key, exp, o, client.getTranscoder(), null);
+    return client.asyncStore(this, groupNode, StoreType.replace, key, exp, o, client.getTranscoder(), null);
   }
 
   public <T> GetFuture<T> asyncGet(final String key, final Transcoder<T> tc, final OperationListener<T> listener) {
-    return client.asyncGet(groupNode, key, tc, listener);
+    return client.asyncGet(this, groupNode, key, tc, listener);
   }
 
   public <T> GetFuture<T> asyncGet(final String key, final Transcoder<T> tc) {
@@ -220,7 +230,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
 
   public <T> OperationFuture<CASValue<T>> asyncGets(final String key,
       final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
-    return client.asyncGets(groupNode, key, tc, listener);
+    return client.asyncGets(this, groupNode, key, tc, listener);
   }
 
   public <T> OperationFuture<CASValue<T>> asyncGets(final String key,
@@ -284,6 +294,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
   @SuppressWarnings("unchecked")
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter,
       Iterator<Transcoder<T>> tcIter, final OperationListener<Map<String, T>> listener) {
+    final MemcachedGroupKeyClient client = this;
     final Map<String, Future<T>> m = new ConcurrentHashMap<String, Future<T>>();
 
     // This map does not need to be a ConcurrentHashMap
@@ -310,7 +321,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
 
       public void gotData(String k, int flags, byte[] data) {
         Transcoder<T> tc = tcMap.get(k);
-        m.put(k, client.getTranscodeService().decode(tc, new CachedData(flags, data, tc.getMaxSize())));
+        m.put(k, client.client.getTranscodeService().decode(tc, new CachedData(flags, data, tc.getMaxSize())));
       }
 
       public void complete(Operation op) {
@@ -323,18 +334,19 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     // is all set up, convert all of these strings collections to operations
     final Map<MemcachedNode, Operation> mops = new HashMap<MemcachedNode, Operation>();
 
-    Operation op = client.getOperationFactory().get(keys, cb);
+    Operation op = client.client.getOperationFactory().get(keys, cb);
     mops.put(groupNode, op);
     ops.add(op);
 
-    client.getMemcachedConnection().checkState();
-    client.getMemcachedConnection().addOperations(mops);
+    client.client.getMemcachedConnection().checkState();
+    client.client.getMemcachedConnection().addOperations(mops);
 
     return rv;
   }
 
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
       Iterator<Transcoder<T>> tcIter, final OperationListener<Map<String, CASValue<T>>> listener) {
+    final MemcachedGroupKeyClient client = this;
     final Map<String, Future<CASValue<T>>> m = new ConcurrentHashMap<String, Future<CASValue<T>>>();
 
     // This map does not need to be a ConcurrentHashMap
@@ -363,7 +375,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert cas > 0 : "CAS was less than zero:  " + cas;
         Transcoder<T> tc = tcMap.get(k);
-        m.put(k, client.getTranscodeService().decodes(tc, new CachedData(flags, data, tc.getMaxSize()), cas));
+        m.put(k, client.client.getTranscodeService().decodes(tc, new CachedData(flags, data, tc.getMaxSize()), cas));
       }
 
       public void complete(Operation op) {
@@ -376,50 +388,46 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     // is all set up, convert all of these strings collections to operations
     final Map<MemcachedNode, Operation> mops = new HashMap<MemcachedNode, Operation>();
 
-    Operation op = client.getOperationFactory().gets(keys, cb);
+    Operation op = client.client.getOperationFactory().gets(keys, cb);
     mops.put(groupNode, op);
     ops.add(op);
 
-    client.getMemcachedConnection().checkState();
-    client.getMemcachedConnection().addOperations(mops);
+    client.client.getMemcachedConnection().checkState();
+    client.client.getMemcachedConnection().addOperations(mops);
 
     return rv;
   }
 
-  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
-                                                                Iterator<Transcoder<T>> tcIter) {
+  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter, Iterator<Transcoder<T>> tcIter) {
     return asyncGetsBulk(keyIter, tcIter, null);
   }
 
-  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
-                                                                Iterator<Transcoder<T>> tcIter, OperationListener<Map<String, CASValue<T>>> listener) {
+  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys, Iterator<Transcoder<T>> tcIter,
+                                                                OperationListener<Map<String, CASValue<T>>> listener) {
     return asyncGetsBulk(keys.iterator(), tcIter, listener);
   }
 
-  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
-                                                                Iterator<Transcoder<T>> tcIter) {
+  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys, Iterator<Transcoder<T>> tcIter) {
     return asyncGetsBulk(keys.iterator(), tcIter, null);
   }
 
-  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
-                                                                Transcoder<T> tc, OperationListener<Map<String, CASValue<T>>> listener) {
+  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter, Transcoder<T> tc,
+                                                                OperationListener<Map<String, CASValue<T>>> listener) {
     return asyncGetsBulk(keyIter, new SingleElementInfiniteIterator<Transcoder<T>>(tc), listener);
   }
 
-  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
-                                                                Transcoder<T> tc) {
+  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter, Transcoder<T> tc) {
     return asyncGetsBulk(keyIter,
             new SingleElementInfiniteIterator<Transcoder<T>>(tc));
   }
 
-  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
-                                                                Transcoder<T> tc, OperationListener<Map<String, CASValue<T>>> listener) {
+  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys, Transcoder<T> tc,
+                                                                OperationListener<Map<String, CASValue<T>>> listener) {
     return asyncGetsBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
             tc), listener);
   }
 
-  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
-                                                                Transcoder<T> tc) {
+  public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys, Transcoder<T> tc) {
     return asyncGetsBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
             tc), null);
   }
@@ -447,8 +455,8 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return asyncGetBulk(keyIter, tcIter, null);
   }
 
-  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys,
-                                                     Iterator<Transcoder<T>> tcIter, OperationListener<Map<String, T>> listener) {
+  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys, Iterator<Transcoder<T>> tcIter,
+                                                     OperationListener<Map<String, T>> listener) {
     return asyncGetBulk(keys.iterator(), tcIter, listener);
   }
 
@@ -457,25 +465,23 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return asyncGetBulk(keys.iterator(), tcIter, null);
   }
 
-  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter,
-                                                     Transcoder<T> tc, OperationListener<Map<String, T>> listener) {
+  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter, Transcoder<T> tc,
+                                                     OperationListener<Map<String, T>> listener) {
     return asyncGetBulk(keyIter, new SingleElementInfiniteIterator<Transcoder<T>>(tc), listener);
   }
 
-  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter,
-                                                     Transcoder<T> tc) {
+  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter, Transcoder<T> tc) {
     return asyncGetBulk(keyIter,
             new SingleElementInfiniteIterator<Transcoder<T>>(tc));
   }
 
-  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys,
-                                                     Transcoder<T> tc, OperationListener<Map<String, T>> listener) {
+  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys, Transcoder<T> tc,
+                                                     OperationListener<Map<String, T>> listener) {
     return asyncGetBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
             tc), listener);
   }
 
-  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys,
-                                                     Transcoder<T> tc) {
+  public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys, Transcoder<T> tc) {
     return asyncGetBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
             tc), null);
   }
@@ -515,19 +521,17 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return asyncGetBulk(Arrays.asList(keys), client.getTranscoder());
   }
 
-  public OperationFuture<CASValue<Object>> asyncGetAndTouch(final String key,
-                                                            final int exp) {
+  public OperationFuture<CASValue<Object>> asyncGetAndTouch(String key, int exp) {
     return asyncGetAndTouch(key, exp, client.getTranscoder());
   }
 
-  public <T> OperationFuture<CASValue<T>> asyncGetAndTouch(final String key,
-                                                           final int exp, final Transcoder<T> tc) {
+  public <T> OperationFuture<CASValue<T>> asyncGetAndTouch( String key, int exp,  Transcoder<T> tc) {
     return asyncGetAndTouch(key, exp, tc, null);
   }
 
-  public <T> OperationFuture<CASValue<T>> asyncGetAndTouch(final String key,
-                                                           final int exp, final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
-    return client.asyncGetAndTouch(groupNode, key, exp, tc, listener);
+  public <T> OperationFuture<CASValue<T>> asyncGetAndTouch( String key, int exp,  Transcoder<T> tc,
+                                                            OperationListener<CASValue<T>> listener) {
+    return client.asyncGetAndTouch(this, groupNode, key, exp, tc, listener);
   }
 
   public <T> Map<String, T> getBulk(Iterator<String> keyIter,
@@ -573,7 +577,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return getStats(null);
   }
 
-  public Map<SocketAddress, Map<String, String>> getStats(final String arg) {
+  public Map<SocketAddress, Map<String, String>> getStats(String arg) {
     return client.getStats(arg);
   }
 
@@ -610,35 +614,35 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
   }
 
   public OperationFuture<CASLongResponse> asyncIncr(String key, long by, OperationListener<CASLongResponse> listener) {
-    return client.asyncMutate(groupNode, Mutator.incr, key, by, 0, -1, listener);
+    return client.asyncMutate(this, groupNode, Mutator.incr, key, by, 0, -1, listener);
   }
 
   public OperationFuture<CASLongResponse> asyncIncr(String key, int by, OperationListener<CASLongResponse> listener) {
-    return client.asyncMutate(groupNode, Mutator.incr, key, (long) by, 0, -1, listener);
+    return client.asyncMutate(this, groupNode, Mutator.incr, key, (long) by, 0, -1, listener);
   }
 
   public OperationFuture<CASLongResponse> asyncDecr(String key, long by, OperationListener<CASLongResponse> listener) {
-    return client.asyncMutate(groupNode, Mutator.decr, key, by, 0, -1, listener);
+    return client.asyncMutate(this, groupNode, Mutator.decr, key, by, 0, -1, listener);
   }
 
   public OperationFuture<CASLongResponse> asyncDecr(String key, int by, OperationListener<CASLongResponse> listener) {
-    return client.asyncMutate(groupNode, Mutator.decr, key, (long) by, 0, -1, listener);
+    return client.asyncMutate(this, groupNode, Mutator.decr, key, (long) by, 0, -1, listener);
   }
 
   public OperationFuture<CASLongResponse> asyncIncr(String key, long by) {
-    return client.asyncMutate(groupNode, Mutator.incr, key, by, 0, -1, null);
+    return client.asyncMutate(this, groupNode, Mutator.incr, key, by, 0, -1, null);
   }
 
   public OperationFuture<CASLongResponse> asyncIncr(String key, int by) {
-    return client.asyncMutate(groupNode, Mutator.incr, key, (long) by, 0, -1, null);
+    return client.asyncMutate(this, groupNode, Mutator.incr, key, (long) by, 0, -1, null);
   }
 
   public OperationFuture<CASLongResponse> asyncDecr(String key, long by) {
-    return client.asyncMutate(groupNode, Mutator.decr, key, by, 0, -1, null);
+    return client.asyncMutate(this, groupNode, Mutator.decr, key, by, 0, -1, null);
   }
 
   public OperationFuture<CASLongResponse> asyncDecr(String key, int by) {
-    return client.asyncMutate(groupNode, Mutator.decr, key, (long) by, 0, -1, null);
+    return client.asyncMutate(this, groupNode, Mutator.decr, key, (long) by, 0, -1, null);
   }
 
   public long incr(String key, long by, long def) {
@@ -667,7 +671,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
 
   protected OperationFuture<CASResponse> delete(boolean quite,
       String key, final OperationListener<CASResponse> listener) {
-    return client.delete(groupNode, quite, key, listener);
+    return client.delete(this, groupNode, quite, key, listener);
   }
 
   public OperationFuture<Boolean> flush(final int delay) {

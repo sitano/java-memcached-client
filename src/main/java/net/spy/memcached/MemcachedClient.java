@@ -206,7 +206,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     return operationTimeout;
   }
 
-  protected MemcachedConnection getMemcachedConnection() {
+  public MemcachedConnection getMemcachedConnection() {
     return mconn;
   }
 
@@ -214,7 +214,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     return opFact;
   }
 
-  protected TranscodeService getTranscodeService() {
+  public TranscodeService getTranscodeService() {
     return tcService;
   }
 
@@ -310,25 +310,25 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     return mconn.broadcastOperation(of, nodes);
   }
 
-  protected <T> OperationFuture<CASResponse> asyncStore(MemcachedNode opNode, StoreType storeType,
-      String key, int exp, T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    CachedData co = tc.encode(value);
-    final MemcachedClient client = this;
+  protected <T> OperationFuture<CASResponse> asyncStore(
+      final MemcachedClientIF client, final MemcachedNode opNode, final StoreType storeType,
+      final String key, final int exp, final T value, final Transcoder<T> tc,
+      final OperationListener<CASResponse> listener) {
+    final CachedData co = tc.encode(value);
     final CountDownLatch latch = new CountDownLatch(1);
-    final OperationFuture<CASResponse> rv =
-            new OperationFuture<CASResponse>(key, latch, operationTimeout);
-    Operation op = opFact.store(storeType, key, co.getFlags(), exp,
-            co.getData(), new OperationCallback() {
-      public void receivedStatus(Operation op, OperationStatus val) {
-        rv.setCas(op.getResponseCas());
-        rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
-      }
+    final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
+    Operation op = opFact.store(storeType, key, co.getFlags(), exp, co.getData(),
+      new OperationCallback() {
+        public void receivedStatus(Operation op, OperationStatus val) {
+          rv.setCas(op.getResponseCas());
+          rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
+        }
 
-      public void complete(Operation op) {
-        latch.countDown();
-        if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-      }
-    });
+        public void complete(Operation op) {
+          latch.countDown();
+          if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
+        }
+      });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
     else mconn.enqueueOperation(opNode, op);
@@ -336,27 +336,27 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   }
 
   private OperationFuture<CASResponse> asyncStore(StoreType storeType, String key, int exp, Object value) {
-    return asyncStore(null, storeType, key, exp, value, transcoder, null);
+    return asyncStore(this, null, storeType, key, exp, value, transcoder, null);
   }
 
-  protected  <T> OperationFuture<CASResponse> asyncCat(MemcachedNode opNode, ConcatenationType catType,
-      long cas, String key, T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    CachedData co = tc.encode(value);
-    final MemcachedClient client = this;
+  protected  <T> OperationFuture<CASResponse> asyncCat(
+      final MemcachedClientIF client, final MemcachedNode opNode, final ConcatenationType catType,
+      final long cas, final String key, final T value, final Transcoder<T> tc,
+      final OperationListener<CASResponse> listener) {
+    final CachedData co = tc.encode(value);
     final CountDownLatch latch = new CountDownLatch(1);
-    final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key,
-        latch, operationTimeout);
+    final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
     Operation op = opFact.cat(catType, cas, key, co.getData(),
-        new OperationCallback() {
-          public void receivedStatus(Operation op, OperationStatus val) {
-            rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
-          }
+      new OperationCallback() {
+        public void receivedStatus(Operation op, OperationStatus val) {
+          rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
+        }
 
-          public void complete(Operation op) {
-            latch.countDown();
-            if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-          }
-        });
+        public void complete(Operation op) {
+          latch.countDown();
+          if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
+        }
+      });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
     else mconn.enqueueOperation(opNode, op);
@@ -406,16 +406,15 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> touch(final String key, final int exp,
       final Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    return touch(null, key, exp, tc, listener);
+    return touch(this, null, key, exp, tc, listener);
   }
 
-  protected  <T> OperationFuture<CASResponse> touch(final MemcachedNode opNode, final String key, final int exp,
-      final Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    final MemcachedClient client = this;
+  protected  <T> OperationFuture<CASResponse> touch(
+      final MemcachedClientIF client, final MemcachedNode opNode,
+      final String key, final int exp, final Transcoder<T> tc,
+      final OperationListener<CASResponse> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
-    final OperationFuture<CASResponse> rv =
-            new OperationFuture<CASResponse>(key, latch, operationTimeout);
-
+    final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
     Operation op = opFact.touch(key, exp, new OperationCallback() {
       public void receivedStatus(Operation op, OperationStatus val) {
         rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
@@ -468,7 +467,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public <T> OperationFuture<CASResponse> append(long cas, String key, T val, Transcoder<T> tc) {
-    return asyncCat(null, ConcatenationType.append, cas, key, val, tc, null);
+    return asyncCat(this, null, ConcatenationType.append, cas, key, val, tc, null);
   }
 
   /**
@@ -488,7 +487,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public <T> OperationFuture<CASResponse> append(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return asyncCat(null, ConcatenationType.append, cas, key, val, tc, listener);
+    return asyncCat(this, null, ConcatenationType.append, cas, key, val, tc, listener);
   }
 
   /**
@@ -526,7 +525,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public <T> OperationFuture<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc) {
-    return asyncCat(null, ConcatenationType.prepend, cas, key, val, tc, null);
+    return asyncCat(this, null, ConcatenationType.prepend, cas, key, val, tc, null);
   }
 
   /**
@@ -546,7 +545,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public <T> OperationFuture<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return asyncCat(null, ConcatenationType.prepend, cas, key, val, tc, listener);
+    return asyncCat(this, null, ConcatenationType.prepend, cas, key, val, tc, listener);
   }
 
   /**
@@ -597,13 +596,14 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, int exp,
       T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    return asyncCAS(null, key, casId, exp, value, tc, listener);
+    return asyncCAS(this, null, key, casId, exp, value, tc, listener);
   }
 
-  protected <T> OperationFuture<CASResponse> asyncCAS(MemcachedNode opNode, String key, long casId, int exp,
-                                          T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
+  protected <T> OperationFuture<CASResponse> asyncCAS(
+      final MemcachedClientIF client, final MemcachedNode opNode,
+      final String key, final long casId, final int exp, final T value, final Transcoder<T> tc,
+      final OperationListener<CASResponse> listener) {
     CachedData co = tc.encode(value);
-    final MemcachedClient client = this;
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv =
             new OperationFuture<CASResponse>(key, latch, operationTimeout);
@@ -762,7 +762,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> add(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return asyncStore(null, StoreType.add, key, exp, o, tc, listener);
+    return asyncStore(this, null, StoreType.add, key, exp, o, tc, listener);
   }
 
   /**
@@ -799,7 +799,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> add(String key, int exp, T o,
       Transcoder<T> tc) {
-    return asyncStore(null, StoreType.add, key, exp, o, tc, null);
+    return asyncStore(this, null, StoreType.add, key, exp, o, tc, null);
   }
 
   /**
@@ -834,7 +834,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASResponse> add(String key, int exp, Object o) {
-    return asyncStore(null, StoreType.add, key, exp, o, transcoder, null);
+    return asyncStore(this, null, StoreType.add, key, exp, o, transcoder, null);
   }
 
   /**
@@ -871,7 +871,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> set(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return asyncStore(null, StoreType.set, key, exp, o, tc, listener);
+    return asyncStore(this, null, StoreType.set, key, exp, o, tc, listener);
   }
 
   /**
@@ -908,7 +908,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> set(String key, int exp, T o,
       Transcoder<T> tc) {
-    return asyncStore(null, StoreType.set, key, exp, o, tc, null);
+    return asyncStore(this, null, StoreType.set, key, exp, o, tc, null);
   }
 
   /**
@@ -943,7 +943,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASResponse> set(String key, int exp, Object o) {
-    return asyncStore(null, StoreType.set, key, exp, o, transcoder, null);
+    return asyncStore(this, null, StoreType.set, key, exp, o, transcoder, null);
   }
 
   /**
@@ -981,7 +981,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> replace(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
-    return asyncStore(null, StoreType.replace, key, exp, o, tc, listener);
+    return asyncStore(this, null, StoreType.replace, key, exp, o, tc, listener);
   }
 
   /**
@@ -1019,7 +1019,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> replace(String key, int exp, T o,
       Transcoder<T> tc) {
-    return asyncStore(null, StoreType.replace, key, exp, o, tc, null);
+    return asyncStore(this, null, StoreType.replace, key, exp, o, tc, null);
   }
 
   /**
@@ -1054,7 +1054,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASResponse> replace(String key, int exp, Object o) {
-    return asyncStore(null, StoreType.replace, key, exp, o, transcoder, null);
+    return asyncStore(this, null, StoreType.replace, key, exp, o, transcoder, null);
   }
 
   /**
@@ -1069,15 +1069,16 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public <T> GetFuture<T> asyncGet(final String key, final Transcoder<T> tc, final OperationListener<T> listener) {
-    return asyncGet(null, key, tc, listener);
+    return asyncGet(this, null, key, tc, listener);
   }
 
-  protected <T> GetFuture<T> asyncGet(MemcachedNode opNode, final String key,
-      final Transcoder<T> tc, final OperationListener<T> listener) {
-    final MemcachedClient client = this;
+  protected <T> GetFuture<T> asyncGet(
+      final MemcachedClientIF client, final MemcachedNode opNode,
+      final String key, final Transcoder<T> tc,
+      final OperationListener<T> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final GetFuture<T> rv = new GetFuture<T>(latch, operationTimeout, key);
-    Operation op = opFact.get(key, new GetOperation.Callback() {
+    final Operation op = opFact.get(key, new GetOperation.Callback() {
       private Future<T> val = null;
 
       public void receivedStatus(Operation op, OperationStatus status) {
@@ -1138,17 +1139,16 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASValue<T>> asyncGets(final String key,
       final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
-    return asyncGets(null, key, tc, listener);
+    return asyncGets(this, null, key, tc, listener);
   }
 
-  protected <T> OperationFuture<CASValue<T>> asyncGets(MemcachedNode opNode, final String key,
-      final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
-    final MemcachedClient client = this;
+  protected <T> OperationFuture<CASValue<T>> asyncGets(
+      final MemcachedClientIF client, final MemcachedNode opNode,
+      final String key, final Transcoder<T> tc,
+      final OperationListener<CASValue<T>> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
-    final OperationFuture<CASValue<T>> rv =
-            new OperationFuture<CASValue<T>>(key, latch, operationTimeout);
-
-    Operation op = opFact.gets(key, new GetsOperation.Callback() {
+    final OperationFuture<CASValue<T>> rv = new OperationFuture<CASValue<T>>(key, latch, operationTimeout);
+    final Operation op = opFact.gets(key, new GetsOperation.Callback() {
       private CASValue<T> val = null;
 
       public void receivedStatus(Operation op, OperationStatus status) {
@@ -1321,8 +1321,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   private <T> Map<MemcachedNode, Collection<String>> getChunks(Iterator<String> keyIter,
                                                                Iterator<Transcoder<T>> tcIter,
                                                                Map<String, Transcoder<T>> outTcMap) {
-    final Map<MemcachedNode, Collection<String>> chunks =
-            new HashMap<MemcachedNode, Collection<String>>();
+    final Map<MemcachedNode, Collection<String>> chunks = new HashMap<MemcachedNode, Collection<String>>();
     final NodeLocator locator = mconn.getLocator();
 
     while (keyIter.hasNext() && tcIter.hasNext()) {
@@ -1929,37 +1928,35 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASValue<T>> asyncGetAndTouch(final String key,
       final int exp, final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
-    return asyncGetAndTouch(null, key, exp, tc, listener);
+    return asyncGetAndTouch(this, null, key, exp, tc, listener);
   }
 
-  protected <T> OperationFuture<CASValue<T>> asyncGetAndTouch(MemcachedNode opNode, final String key,
-      final int exp, final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
-    final MemcachedClient client = this;
+  protected <T> OperationFuture<CASValue<T>> asyncGetAndTouch(
+      final MemcachedClientIF client, final MemcachedNode opNode,
+      final String key, final int exp, final Transcoder<T> tc,
+      final OperationListener<CASValue<T>> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASValue<T>> rv = new OperationFuture<CASValue<T>>(
             key, latch, operationTimeout);
 
-    Operation op = opFact.getAndTouch(key, exp,
-            new GetAndTouchOperation.Callback() {
-              private CASValue<T> val = null;
+    Operation op = opFact.getAndTouch(key, exp, new GetAndTouchOperation.Callback() {
+        private CASValue<T> val = null;
 
-              public void receivedStatus(Operation op, OperationStatus status) {
-                rv.set(val, status);
-              }
+        public void receivedStatus(Operation op, OperationStatus status) {
+          rv.set(val, status);
+        }
 
-              public void complete(Operation op) {
-                latch.countDown();
-                if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-              }
+        public void complete(Operation op) {
+          latch.countDown();
+          if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
+        }
 
-              public void gotData(String k, int flags, long cas, byte[] data) {
-                assert k.equals(key) : "Wrong key returned";
-                assert cas > 0 : "CAS was less than zero:  " + cas;
-                val =
-                        new CASValue<T>(cas, tc.decode(new CachedData(flags, data,
-                                tc.getMaxSize())));
-              }
-            });
+        public void gotData(String k, int flags, long cas, byte[] data) {
+          assert k.equals(key) : "Wrong key returned";
+          assert cas > 0 : "CAS was less than zero:  " + cas;
+          val = new CASValue<T>(cas, tc.decode(new CachedData(flags, data, tc.getMaxSize())));
+        }
+      });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
     else mconn.enqueueOperation(opNode, op);
@@ -2358,8 +2355,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     return mutateWithDefault(null, Mutator.decr, key, (long)by, def, exp);
   }
 
-  protected long mutateWithDefault(MemcachedNode opNode, Mutator t, String key, long by, long def,
-      int exp) {
+  protected long mutateWithDefault(MemcachedNode opNode, Mutator t, String key, long by, long def, int exp) {
     long rv = mutate(opNode, t, key, by, def, exp);
     // The ascii protocol doesn't support defaults, so I added them
     // manually here.
@@ -2385,12 +2381,12 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     return rv;
   }
 
-  protected OperationFuture<CASLongResponse> asyncMutate(MemcachedNode opNode, Mutator m, String key, long by,
-      long def, int exp, final OperationListener<CASLongResponse> listener) {
-    final MemcachedClient client = this;
+  protected OperationFuture<CASLongResponse> asyncMutate(
+      final MemcachedClientIF client, final MemcachedNode opNode,
+      Mutator m, String key, long by, long def, int exp,
+      final OperationListener<CASLongResponse> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
-    final OperationFuture<CASLongResponse> rv =
-        new OperationFuture<CASLongResponse>(key, latch, operationTimeout);
+    final OperationFuture<CASLongResponse> rv = new OperationFuture<CASLongResponse>(key, latch, operationTimeout);
     Operation op = opFact.mutate(m, key, by, def, exp,
         new OperationCallback() {
           public void receivedStatus(Operation op, OperationStatus s) {
@@ -2418,7 +2414,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncIncr(String key, long by, OperationListener<CASLongResponse> listener) {
-    return asyncMutate(null, Mutator.incr, key, by, 0, -1, listener);
+    return asyncMutate(this, null, Mutator.incr, key, by, 0, -1, listener);
   }
 
   /**
@@ -2431,7 +2427,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncIncr(String key, int by, OperationListener<CASLongResponse> listener) {
-    return asyncMutate(null, Mutator.incr, key, (long)by, 0, -1, listener);
+    return asyncMutate(this, null, Mutator.incr, key, (long)by, 0, -1, listener);
   }
 
   /**
@@ -2444,7 +2440,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncDecr(String key, long by, OperationListener<CASLongResponse> listener) {
-    return asyncMutate(null, Mutator.decr, key, by, 0, -1, listener);
+    return asyncMutate(this, null, Mutator.decr, key, by, 0, -1, listener);
   }
 
   /**
@@ -2457,7 +2453,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncDecr(String key, int by, OperationListener<CASLongResponse> listener) {
-    return asyncMutate(null, Mutator.decr, key, (long)by, 0, -1, listener);
+    return asyncMutate(this, null, Mutator.decr, key, (long)by, 0, -1, listener);
   }
 
   /**
@@ -2470,7 +2466,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncIncr(String key, long by) {
-    return asyncMutate(null, Mutator.incr, key, by, 0, -1, null);
+    return asyncMutate(this, null, Mutator.incr, key, by, 0, -1, null);
   }
 
   /**
@@ -2483,7 +2479,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncIncr(String key, int by) {
-    return asyncMutate(null, Mutator.incr, key, (long)by, 0, -1, null);
+    return asyncMutate(this, null, Mutator.incr, key, (long)by, 0, -1, null);
   }
 
   /**
@@ -2496,7 +2492,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncDecr(String key, long by) {
-    return asyncMutate(null, Mutator.decr, key, by, 0, -1, null);
+    return asyncMutate(this, null, Mutator.decr, key, by, 0, -1, null);
   }
 
   /**
@@ -2509,7 +2505,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASLongResponse> asyncDecr(String key, int by) {
-    return asyncMutate(null, Mutator.decr, key, (long)by, 0, -1, null);
+    return asyncMutate(this, null, Mutator.decr, key, (long)by, 0, -1, null);
   }
 
   /**
@@ -2622,12 +2618,12 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    return delete(null, false, key, listener);
+    return delete(this, null, false, key, listener);
   }
 
-  protected OperationFuture<CASResponse> delete(MemcachedNode opNode, boolean quite,
-                                                String key, final OperationListener<CASResponse> listener) {
-    final MemcachedClient client = this;
+  protected OperationFuture<CASResponse> delete(
+      final MemcachedClientIF client, final MemcachedNode opNode,
+      boolean quite, String key, final OperationListener<CASResponse> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key,
             latch, operationTimeout);
