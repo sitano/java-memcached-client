@@ -561,7 +561,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc, OperationListener<CASResponse> listener) {
+  public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncCAS(key, casId, 0, value, tc, listener);
   }
 
@@ -577,7 +577,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc) {
+  public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc) {
     return asyncCAS(key, casId, 0, value, tc, null);
   }
 
@@ -595,12 +595,12 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
+  public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, int exp,
       T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
     return asyncCAS(null, key, casId, exp, value, tc, listener);
   }
 
-  protected <T> Future<CASResponse> asyncCAS(MemcachedNode opNode, String key, long casId, int exp,
+  protected <T> OperationFuture<CASResponse> asyncCAS(MemcachedNode opNode, String key, long casId, int exp,
                                           T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
     CachedData co = tc.encode(value);
     final MemcachedClient client = this;
@@ -647,7 +647,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
+  public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, int exp,
       T value, Transcoder<T> tc) {
     return asyncCAS(key, casId, exp, value, tc, null);
   }
@@ -662,7 +662,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
-  public Future<CASResponse> asyncCAS(String key, long casId, Object value) {
+  public OperationFuture<CASResponse> asyncCAS(String key, long casId, Object value) {
     return asyncCAS(key, casId, value, transcoder);
   }
 

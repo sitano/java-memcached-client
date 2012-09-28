@@ -43,7 +43,21 @@ public enum CASResponseType {
    */
   EXISTS,
   /**
+   * Status indicating there was an error in specifying the arguments for
+   * the Observe.
+   */
+  OBSERVE_ERROR_IN_ARGS,
+  /**
+   * Status indicating the CAS operation succeeded but the value was
+   * subsequently modified during Observe.
+   */
+  OBSERVE_MODIFIED,
+  /**
+   * Status indicating there was a Timeout in the Observe operation.
+   */
+  OBSERVE_TIMEOUT,
+  /**
    * Status indicating the cas conflict on operation or failed operation (i.e. add failed)
    */
-  FAILED
+  FAILED;
 }
