@@ -30,6 +30,7 @@ import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationCallback;
 import net.spy.memcached.ops.OperationStatus;
 import net.spy.memcached.protocol.ascii.ExtensibleOperationImpl;
+import org.junit.Test;
 
 /**
  * This test assumes a server is running on the host specified in the
@@ -61,6 +62,10 @@ public class AsciiClientTest extends ProtocolBaseCase {
       });
   }
 
+  @Override
+  @Test(expected=UnsupportedOperationException.class)
+  public void testSetReturnsCAS() {
+  }
   @Override
   protected String getExpectedVersionSource() {
     return String.valueOf(new InetSocketAddress(TestConfig.IPV4_ADDR,

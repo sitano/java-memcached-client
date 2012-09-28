@@ -320,6 +320,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     Operation op = opFact.store(storeType, key, co.getFlags(), exp,
             co.getData(), new OperationCallback() {
       public void receivedStatus(Operation op, OperationStatus val) {
+        rv.setCas(op.getResponseCas());
         rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
       }
 
@@ -609,6 +610,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     Operation op = opFact.cas(StoreType.set, key, casId, co.getFlags(), exp,
             co.getData(), new OperationCallback() {
       public void receivedStatus(Operation op, OperationStatus val) {
+        rv.setCas(op.getResponseCas());
         if (val instanceof CASOperationStatus) {
           rv.set(new CASResponse(((CASOperationStatus) val).getCASResponse(), op.getResponseCas()), val);
         } else if (val instanceof CancelledOperationStatus) {
