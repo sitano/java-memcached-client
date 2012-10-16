@@ -43,6 +43,9 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
 
     this.groupKey = groupKey;
     this.groupNode = client.getMemcachedConnection().selectNode(groupKey);
+
+    if (this.groupKey == null || this.groupNode == null)
+      throw new IllegalArgumentException("selectNode(" + groupKey + ") failed to select a node for GroupKeyClient");
   }
 
   MemcachedGroupKeyClient(MemcachedClient client, String groupKey, MemcachedNode groupNode) {
@@ -50,6 +53,9 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
 
     this.groupKey = groupKey;
     this.groupNode = groupNode;
+
+      if (this.groupKey == null || this.groupNode == null)
+      throw new IllegalArgumentException("groupNode can't be null inside GroupKeyClient constructor");
   }
 
   public Collection<SocketAddress> getAvailableServers() {
