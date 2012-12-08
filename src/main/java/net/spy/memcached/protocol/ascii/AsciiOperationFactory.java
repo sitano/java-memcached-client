@@ -47,6 +47,7 @@ import net.spy.memcached.ops.NoopOperation;
 import net.spy.memcached.ops.ObserveOperation;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationCallback;
+import net.spy.memcached.ops.StatsOperation.Callback;
 
 import net.spy.memcached.ops.SASLAuthOperation;
 import net.spy.memcached.ops.SASLMechsOperation;
@@ -112,6 +113,11 @@ public class AsciiOperationFactory extends BaseOperationFactory {
 
   public GetsOperation gets(Collection<String> keys, GetsOperation.Callback cb) {
     return new GetsOperationImpl(keys, cb);
+  }
+
+  public StatsOperation keyStats(String key, Callback cb) {
+    throw new UnsupportedOperationException("Key stats are not supported "
+        + "for ASCII protocol");
   }
 
   public MutatorOperation mutate(Mutator m, String key, long by, long exp,
