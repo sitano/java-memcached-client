@@ -25,6 +25,7 @@ package net.spy.memcached;
 
 import net.spy.memcached.internal.*;
 import net.spy.memcached.ops.*;
+import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.Transcoder;
 import net.spy.memcached.util.StringUtils;
 
@@ -83,7 +84,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
   }
 
   public MemcachedClientIF getGroupKey(String key) {
-    StringUtils.validateKey(key);
+    StringUtils.validateKey(key, client.getOperationFactory() instanceof BinaryOperationFactory);
     if (key.equals(groupKey)) return this;
     return new MemcachedGroupKeyClient(client, key);
   }
