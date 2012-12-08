@@ -57,6 +57,8 @@ import net.spy.memcached.ops.OperationException;
 import net.spy.memcached.ops.OperationState;
 import net.spy.memcached.ops.TapOperation;
 import net.spy.memcached.ops.VBucketAware;
+import net.spy.memcached.protocol.binary.BinaryOperationFactory;
+import net.spy.memcached.protocol.binary.TapAckOperationImpl;
 import net.spy.memcached.util.StringUtils;
 
 /**
@@ -429,6 +431,7 @@ public class MemcachedConnection extends SpyThread {
     throws IOException {
     Operation currentOp = qa.getCurrentReadOp();
     // If it's a tap ack there is no response
+    // currentOp instanceof TapAckOperationImpl (it is quiet() by def)
     if (currentOp.isQuiet()) {
       qa.removeCurrentReadOp();
       return;
@@ -636,7 +639,7 @@ public class MemcachedConnection extends SpyThread {
   }
 
   public void enqueueOperation(String key, Operation o) {
-    StringUtils.validateKey(key);
+    StringUtils.validateKey(key, opFact instanceof BinaryOperationFactory);
     checkState();
     addOperation(key, o);
   }

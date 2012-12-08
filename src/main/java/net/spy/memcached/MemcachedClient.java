@@ -68,6 +68,7 @@ import net.spy.memcached.ops.OperationStatus;
 import net.spy.memcached.ops.StatsOperation;
 import net.spy.memcached.ops.StoreType;
 import net.spy.memcached.ops.TimedOutOperationStatus;
+import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.TranscodeService;
 import net.spy.memcached.transcoders.Transcoder;
 import net.spy.memcached.util.StringUtils;
@@ -277,7 +278,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @return Client instance with operational node selected
    */
   public MemcachedClientIF getGroupKey(String key) {
-    StringUtils.validateKey(key);
+    StringUtils.validateKey(key, opFact instanceof BinaryOperationFactory);
     return new MemcachedGroupKeyClient(this, key);
   }
 
@@ -1321,7 +1322,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     while (keyIter.hasNext() && tcIter.hasNext()) {
       String key = keyIter.next();
       outTcMap.put(key, tcIter.next());
-      StringUtils.validateKey(key);
+      StringUtils.validateKey(key, opFact instanceof BinaryOperationFactory);
       final MemcachedNode primaryNode = locator.getPrimary(key);
       MemcachedNode node = null;
       if (primaryNode.isActive()) {
