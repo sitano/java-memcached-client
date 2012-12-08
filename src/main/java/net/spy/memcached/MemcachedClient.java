@@ -2618,7 +2618,11 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
             latch, operationTimeout);
     DeleteOperation op = quite
         ? opFact.deleteQuiet(key)
-        : opFact.delete(key, new OperationCallback() {
+        : opFact.delete(key, new DeleteOperation.Callback() {
+      public void gotData(long cas) {
+        rv.setCas(cas);
+      }
+
       public void receivedStatus(Operation op, OperationStatus s) {
         rv.set(new CASResponse(s.isSuccess(), op.getResponseCas()), s);
       }

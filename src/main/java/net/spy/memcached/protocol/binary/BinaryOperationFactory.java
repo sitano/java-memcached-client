@@ -66,7 +66,7 @@ import net.spy.memcached.tapmessage.TapOpcode;
  */
 public class BinaryOperationFactory extends BaseOperationFactory {
 
-  public DeleteOperation delete(String key, OperationCallback operationCallback) {
+  public DeleteOperation delete(String key, DeleteOperation.Callback operationCallback) {
     return new DeleteOperationImpl(key, operationCallback);
   }
 

@@ -73,10 +73,10 @@ public interface OperationFactory {
    * Create a deletion operation.
    *
    * @param key the key to delete
-   * @param operationCallback the status callback
+   * @param callback the status callback
    * @return the new DeleteOperation
    */
-  DeleteOperation delete(String key, OperationCallback operationCallback);
+  DeleteOperation delete(String key, DeleteOperation.Callback callback);
 
   /**
    * Create a quite deletion operation.
