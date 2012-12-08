@@ -125,6 +125,8 @@ import net.spy.memcached.util.StringUtils;
 public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     ConnectionObserver {
 
+  protected static final OperationStatus STATUS_ERROR = new OperationStatus(false, "Error");
+
   protected volatile boolean shuttingDown = false;
 
   protected final long operationTimeout;
@@ -310,6 +312,27 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     return mconn.broadcastOperation(of, nodes);
   }
 
+  private static void onReceivedStatus(OperationFuture<CASResponse> future, Operation op, OperationStatus val) {
+    future.setCas(op.getResponseCas());
+    future.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
+  }
+
+  private static void onReceivedStatus(OperationFuture<CASResponse> future, Operation op, CASOperationStatus val) {
+    future.setCas(op.getResponseCas());
+    future.set(new CASResponse(val.getCASResponse(), op.getResponseCas()), val);
+  }
+
+  private static <T> void onComplete(MemcachedClientIF client,
+                                 OperationFuture<T> future, Operation op, CountDownLatch latch,
+                                 OperationListener<T> listener) {
+    latch.countDown();
+    if (listener != null) {
+      OperationStatus status = future.getStatus();
+      if (status == null) status = STATUS_ERROR;
+      listener.onComplete(client, status, future);
+    }
+  }
+
   protected <T> OperationFuture<CASResponse> asyncStore(
       final MemcachedClientIF client, final MemcachedNode opNode, final StoreType storeType,
       final String key, final int exp, final T value, final Transcoder<T> tc,
@@ -319,15 +342,9 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
     Operation op = opFact.store(storeType, key, co.getFlags(), exp, co.getData(),
       new OperationCallback() {
-        public void receivedStatus(Operation op, OperationStatus val) {
-          rv.setCas(op.getResponseCas());
-          rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
-        }
+        public void receivedStatus(Operation op, OperationStatus val) { onReceivedStatus(rv, op, val); }
 
-        public void complete(Operation op) {
-          latch.countDown();
-          if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-        }
+        public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
       });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
@@ -348,14 +365,9 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
     Operation op = opFact.cat(catType, cas, key, co.getData(),
       new OperationCallback() {
-        public void receivedStatus(Operation op, OperationStatus val) {
-          rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
-        }
+        public void receivedStatus(Operation op, OperationStatus val) { onReceivedStatus(rv, op, val); }
 
-        public void complete(Operation op) {
-          latch.countDown();
-          if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-        }
+        public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
       });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
@@ -416,14 +428,9 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
     Operation op = opFact.touch(key, exp, new OperationCallback() {
-      public void receivedStatus(Operation op, OperationStatus val) {
-        rv.set(new CASResponse(val.isSuccess(), op.getResponseCas()), val);
-      }
+      public void receivedStatus(Operation op, OperationStatus val) { onReceivedStatus(rv, op, val); }
 
-      public void complete(Operation op) {
-        latch.countDown();
-        if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-      }
+      public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
@@ -610,22 +617,14 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     Operation op = opFact.cas(StoreType.set, key, casId, co.getFlags(), exp,
             co.getData(), new OperationCallback() {
       public void receivedStatus(Operation op, OperationStatus val) {
-        rv.setCas(op.getResponseCas());
         if (val instanceof CASOperationStatus) {
-          rv.set(new CASResponse(((CASOperationStatus) val).getCASResponse(), op.getResponseCas()), val);
-        } else if (val instanceof CancelledOperationStatus) {
-          getLogger().debug("CAS operation cancelled");
-        } else if (val instanceof TimedOutOperationStatus) {
-          getLogger().debug("CAS operation timed out");
+          onReceivedStatus(rv, op, (CASOperationStatus) val);
         } else {
-          throw new RuntimeException("Unhandled state: " + val);
+          onReceivedStatus(rv, op, val);
         }
       }
 
-      public void complete(Operation op) {
-        latch.countDown();
-        if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-      }
+      public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
@@ -1081,18 +1080,20 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Operation op = opFact.get(key, new GetOperation.Callback() {
       private Future<T> val = null;
 
-      public void receivedStatus(Operation op, OperationStatus status) {
-        rv.set(val, status);
-      }
-
       public void gotData(String k, int flags, byte[] data) {
         assert key.equals(k) : "Wrong key returned";
         val = tcService.decode(tc, new CachedData(flags, data, tc.getMaxSize()));
       }
 
+      public void receivedStatus(Operation op, OperationStatus status) { rv.set(val, status); }
+
       public void complete(Operation op) {
         latch.countDown();
-        if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
+        if (listener != null) {
+          OperationStatus status = rv.getStatus();
+          if (status == null) status = STATUS_ERROR;
+          listener.onComplete(client, status, rv);
+        }
       }
     });
     rv.setOperation(op);
@@ -1151,22 +1152,15 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Operation op = opFact.gets(key, new GetsOperation.Callback() {
       private CASValue<T> val = null;
 
-      public void receivedStatus(Operation op, OperationStatus status) {
-        rv.set(val, status);
-      }
-
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert key.equals(k) : "Wrong key returned";
         assert cas > 0 : "CAS was less than zero:  " + cas;
-        val =
-                new CASValue<T>(cas, tc.decode(new CachedData(flags, data,
-                        tc.getMaxSize())));
+        val = new CASValue<T>(cas, tc.decode(new CachedData(flags, data, tc.getMaxSize())));
       }
 
-      public void complete(Operation op) {
-        latch.countDown();
-        if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-      }
+      public void receivedStatus(Operation op, OperationStatus status) { rv.set(val, status); }
+
+      public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
@@ -1388,20 +1382,21 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final BulkGetFuture<T> rv = new BulkGetFuture<T>(m, ops, latch);
 
     GetOperation.Callback cb = new GetOperation.Callback() {
-      @SuppressWarnings("synthetic-access")
-      public void receivedStatus(Operation op, OperationStatus status) {
-        rv.setStatus(status);
-      }
-
       public void gotData(String k, int flags, byte[] data) {
         Transcoder<T> tc = tcMap.get(k);
-        m.put(k,
-            tcService.decode(tc, new CachedData(flags, data, tc.getMaxSize())));
+        m.put(k, tcService.decode(tc, new CachedData(flags, data, tc.getMaxSize())));
       }
+
+      @SuppressWarnings("synthetic-access")
+      public void receivedStatus(Operation op, OperationStatus status) { rv.setStatus(status); }
 
       public void complete(Operation op) {
         latch.countDown();
-        if (listener != null && latch.getCount() < 1) listener.onComplete(client, rv.getStatus(), rv);
+        if (listener != null && latch.getCount() < 1) {
+          OperationStatus st = rv.getStatus();
+          if (st == null) st = STATUS_ERROR;
+          listener.onComplete(client, st, rv);
+        }
       }
     };
 
@@ -1453,20 +1448,22 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final BulkGetFuture<CASValue<T>> rv = new BulkGetFuture<CASValue<T>>(m, ops, latch);
 
     GetsOperation.Callback cb = new GetsOperation.Callback() {
-      @SuppressWarnings("synthetic-access")
-      public void receivedStatus(Operation op, OperationStatus status) {
-        rv.setStatus(status);
-      }
-
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert cas > 0 : "CAS was less than zero:  " + cas;
         Transcoder<T> tc = tcMap.get(k);
         m.put(k, tcService.decodes(tc, new CachedData(flags, data, tc.getMaxSize()), cas));
       }
 
+      @SuppressWarnings("synthetic-access")
+      public void receivedStatus(Operation op, OperationStatus status) { rv.setStatus(status); }
+
       public void complete(Operation op) {
         latch.countDown();
-        if (listener != null && latch.getCount() < 1) listener.onComplete(client, rv.getStatus(), rv);
+        if (listener != null && latch.getCount() < 1) {
+          OperationStatus st = rv.getStatus();
+          if (st == null) st = STATUS_ERROR;
+          listener.onComplete(client, st, rv);
+        }
       }
     };
 
@@ -1940,23 +1937,18 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
             key, latch, operationTimeout);
 
     Operation op = opFact.getAndTouch(key, exp, new GetAndTouchOperation.Callback() {
-        private CASValue<T> val = null;
+      private CASValue<T> val = null;
 
-        public void receivedStatus(Operation op, OperationStatus status) {
-          rv.set(val, status);
-        }
+      public void gotData(String k, int flags, long cas, byte[] data) {
+        assert k.equals(key) : "Wrong key returned";
+        assert cas > 0 : "CAS was less than zero:  " + cas;
+        val = new CASValue<T>(cas, tc.decode(new CachedData(flags, data, tc.getMaxSize())));
+      }
 
-        public void complete(Operation op) {
-          latch.countDown();
-          if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-        }
+      public void receivedStatus(Operation op, OperationStatus status) { rv.set(val, status); }
 
-        public void gotData(String k, int flags, long cas, byte[] data) {
-          assert k.equals(key) : "Wrong key returned";
-          assert cas > 0 : "CAS was less than zero:  " + cas;
-          val = new CASValue<T>(cas, tc.decode(new CachedData(flags, data, tc.getMaxSize())));
-        }
-      });
+      public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
+    });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
     else mconn.enqueueOperation(opNode, op);
@@ -2393,10 +2385,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
             rv.set(new CASLongResponse(s.isSuccess(), op.getResponseCas(), s.isSuccess() ? Long.parseLong(s.getMessage()) : -1), s);
           }
 
-          public void complete(Operation op) {
-            latch.countDown();
-            if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-          }
+          public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
         });
     if (opNode == null) mconn.enqueueOperation(key, op);
     else mconn.enqueueOperation(opNode, op);
@@ -2634,10 +2623,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
         rv.set(new CASResponse(s.isSuccess(), op.getResponseCas()), s);
       }
 
-      public void complete(Operation op) {
-        latch.countDown();
-        if (listener != null) listener.onComplete(client, rv.getStatus(), rv);
-      }
+      public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
     if (opNode == null) mconn.enqueueOperation(key, op);
