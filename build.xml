@@ -340,7 +340,8 @@
   <target name="gen-version" depends="init">
     <exec executable="git" resultproperty="err" outputproperty="result">
       <arg value="describe" />
-      <arg value="--abbrev=0" />
+      <arg value="--tags" />
+      <!--<arg value="-  -  abbrev=0" />-->
     </exec>
     <if>
       <equals arg1="${err}" arg2="0"/>
