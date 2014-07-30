@@ -123,12 +123,6 @@ class MemcachedGroupKeyQuietClient extends MemcachedGroupKeyClient {
   }
 
   public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
-                                          T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    throw new UnsupportedOperationException();
-    // TODO: clent.asyncCAS(groupNode, key, casId, exp, value, tc, listener);
-  }
-
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
                                           T value, Transcoder<T> tc) {
     return asyncCAS(key, casId, exp, value, tc, null);
   }

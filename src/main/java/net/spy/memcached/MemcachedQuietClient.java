@@ -111,6 +111,10 @@ class MemcachedQuietClient implements MemcachedClientIF {
     // TODO: clent.asyncCat(groupNode, ConcatenationType.prepend, cas, key, val, tc, listener);
   }
 
+  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp, T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
+    return client.asyncCAS(key, casId, exp, value, tc, listener);
+  }
+
   public <T> Future<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncCAS(key, casId, 0, value, tc, listener);
   }
@@ -119,14 +123,7 @@ class MemcachedQuietClient implements MemcachedClientIF {
     return asyncCAS(key, casId, 0, value, tc, null);
   }
 
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
-                                          T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
-    throw new UnsupportedOperationException();
-    // TODO: clent.asyncCAS(groupNode, key, casId, exp, value, tc, listener);
-  }
-
-  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp,
-                                          T value, Transcoder<T> tc) {
+  public <T> Future<CASResponse> asyncCAS(String key, long casId, int exp, T value, Transcoder<T> tc) {
     return asyncCAS(key, casId, exp, value, tc, null);
   }
 

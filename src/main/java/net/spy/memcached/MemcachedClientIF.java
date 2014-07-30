@@ -68,6 +68,9 @@ public interface MemcachedClientIF {
 
   <T> Future<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener);
 
+  <T> Future<CASResponse> asyncCAS(String key, long casId, int exp, T value,
+                                   Transcoder<T> tc, final OperationListener<CASResponse> listener);
+
   <T> Future<CASResponse> asyncCAS(String key, long casId, T value,
                                    Transcoder<T> tc, OperationListener<CASResponse> listener);
 
