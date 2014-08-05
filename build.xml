@@ -305,9 +305,9 @@
   <target name="docs" description="Build javadoc"
       depends="init,javadoc-uptodate,compile" unless="javadoc.is.uptodate">
     <mkdir dir="${build.javadoc}" />
-    <exec executable="date" outputproperty="year">
-      <arg value="+%Y" />
-    </exec>
+    <tstamp>
+      <format property="year" pattern="yyyy"/>
+    </tstamp>
     <javadoc
       packagenames="src"
       sourcepath="${src.dir}"
@@ -338,23 +338,30 @@
        ======================================= -->
 
   <target name="gen-version" depends="init">
-    <exec executable="git" resultproperty="err" outputproperty="result">
-      <arg value="describe" />
-      <arg value="--tags" />
-      <!--<arg value="-  -  abbrev=0" />-->
+    <exec executable="hg" resultproperty="err" outputproperty="result_branch_name">
+      <arg value="branch" />
     </exec>
     <if>
       <equals arg1="${err}" arg2="0"/>
       <then>
+        <propertyregex property="result"
+                       input="${result_branch_name}"
+                       regexp="java_memcached_client_(.*)"
+                       select="\1" />
         <var name="version" value="${result}"/>
       </then>
     </if>
-    <exec executable="${script.src.dir}/write-version-info.sh"
-        dir="${basedir}" failonerror="true">
-      <arg value="${build.dir}" />
-      <arg value="${version}" />
-      <arg value="${git.hash}" />
-    </exec>
+    <if>
+      <not><os family="windows" /></not>
+      <then>
+      <exec executable="${script.src.dir}/write-version-info.sh"
+            dir="${basedir}" failonerror="true">
+          <arg value="${build.dir}" />
+          <arg value="${version}" />
+          <arg value="${git.hash}" />
+      </exec>
+      </then>
+    </if>
   </target>
 
   <target name="compile" depends="ivy-init, gen-version, ivy-retrieve"
@@ -380,7 +387,8 @@
       <classpath refid="${name}.common.classpath"/>
     </javac>
     <move file="${build.src.dir}/net/spy/memcached/changelog.txt"
-        tofile="${build.classes}/net/spy/memcached/changelog.txt" />
+        tofile="${build.classes}/net/spy/memcached/changelog.txt"
+        failonerror="false"/>
   </target>
 
   <target name="srcjar" depends="init,jar"
@@ -437,16 +445,15 @@
         Section: Maven Support
        ====================================== -->
 
-  <target name="mvn-download" unless="offline">
-    <mkdir dir="${build.dir}" />
-    <get src="${mvn_repo_url}" dest="${mvn.jar}" usetimestamp="true" />
-  </target>
-
-  <target name="mvn-prep" depends="ivy-init, gen-version, mvn-download"
+  <target name="mvn-prep" depends="ivy-init, gen-version"
       description="Creates maven files">
     <!-- prepare for mvn tasks. -->
     <property name="spymemcached.pom" value="${mvn.build.dir}/poms/spymemcached-${version}.pom" />
     <property name="spymemcached-test.pom" value="${mvn.build.dir}/poms/spymemcached-test-${version}.pom" />
+
+    <!-- Download maven -->
+    <mkdir dir="${build.dir}" />
+    <get src="${mvn_repo_url}" dest="${mvn.jar}" usetimestamp="true" />
 
     <!-- Register mvn tasks -->
     <path id="mvn-ant-task.classpath" path="${mvn.jar}" />
