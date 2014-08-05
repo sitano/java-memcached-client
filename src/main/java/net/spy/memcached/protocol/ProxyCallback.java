@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.spy.memcached.ops.DataCallback;
 import net.spy.memcached.ops.GetOperation;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationStatus;
@@ -34,44 +35,47 @@ import net.spy.memcached.ops.OperationStatus;
 /**
  * Proxy callback used for dispatching callbacks over optimized gets.
  */
-public class ProxyCallback implements GetOperation.Callback {
+public class ProxyCallback implements DataCallback {
 
-  private final Map<String, Collection<GetOperation.Callback>> callbacks =
-      new HashMap<String, Collection<GetOperation.Callback>>();
-  private final Collection<GetOperation.Callback> allCallbacks =
-      new ArrayList<GetOperation.Callback>();
+  private final Map<String, Collection<DataCallback>> callbacks =
+      new HashMap<String, Collection<DataCallback>>();
+  private final Collection<DataCallback> allCallbacks =
+      new ArrayList<DataCallback>();
 
   public void addCallbacks(GetOperation o) {
-    GetOperation.Callback c =
+    DataCallback c =
         new GetCallbackWrapper(o, o.getKeys().size(),
-            (GetOperation.Callback) o.getCallback());
+            (DataCallback) o.getCallback());
     allCallbacks.add(c);
     for (String s : o.getKeys()) {
-      Collection<GetOperation.Callback> cbs = callbacks.get(s);
+      Collection<DataCallback> cbs = callbacks.get(s);
       if (cbs == null) {
-        cbs = new ArrayList<GetOperation.Callback>();
+        cbs = new ArrayList<DataCallback>();
         callbacks.put(s, cbs);
       }
       cbs.add(c);
     }
   }
 
-  public void gotData(String key, int flags, byte[] data) {
-    Collection<GetOperation.Callback> cbs = callbacks.get(key);
+  @Override
+  public void gotData(String key, int flags, long cas, byte[] data) {
+    Collection<DataCallback> cbs = callbacks.get(key);
     assert cbs != null : "No callbacks for key " + key;
-    for (GetOperation.Callback c : cbs) {
-      c.gotData(key, flags, data);
+    for (DataCallback c : cbs) {
+      c.gotData(key, flags, cas, data);
     }
   }
 
+  @Override
   public void receivedStatus(Operation operation, OperationStatus status) {
-    for (GetOperation.Callback c : allCallbacks) {
+    for (DataCallback c : allCallbacks) {
       c.receivedStatus(operation, status);
     }
   }
 
+  @Override
   public void complete(Operation operation) {
-    for (GetOperation.Callback c : allCallbacks) {
+    for (DataCallback c : allCallbacks) {
       c.complete(operation);
     }
   }

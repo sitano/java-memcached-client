@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 
+import net.spy.memcached.ops.DataCallback;
 import net.spy.memcached.ops.GetOperation;
 import net.spy.memcached.ops.GetsOperation;
 
@@ -36,11 +37,11 @@ class GetsOperationImpl extends BaseGetOpImpl implements GetsOperation {
 
   private static final String CMD = "gets";
 
-  public GetsOperationImpl(String key, GetsOperation.Callback cb) {
+  public GetsOperationImpl(String key, DataCallback cb) {
     super(CMD, cb, Collections.singleton(key));
   }
 
-  public GetsOperationImpl(Collection<String> k, GetsOperation.Callback cb) {
+  public GetsOperationImpl(Collection<String> k, DataCallback cb) {
     super(CMD, cb, new HashSet<String>(k));
   }
 }

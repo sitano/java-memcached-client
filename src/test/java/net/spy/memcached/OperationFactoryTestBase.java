@@ -31,6 +31,7 @@ import java.util.Random;
 import net.spy.memcached.ops.CASOperation;
 import net.spy.memcached.ops.ConcatenationOperation;
 import net.spy.memcached.ops.ConcatenationType;
+import net.spy.memcached.ops.DataCallback;
 import net.spy.memcached.ops.DeleteOperation;
 import net.spy.memcached.ops.GetOperation;
 import net.spy.memcached.ops.GetsOperation;
@@ -55,7 +56,7 @@ public abstract class OperationFactoryTestBase extends MockObjectTestCase {
   protected OperationFactory ofact = null;
   protected OperationCallback genericCallback;
   protected OperationCallback storeCallback;
-  protected DeleteOperation.Callback deleteCallback;
+  protected DataCallback deleteCallback;
   private byte[] testData;
 
   @Override
@@ -80,12 +81,12 @@ public abstract class OperationFactoryTestBase extends MockObjectTestCase {
         fail("Unexpected invocation");
       }
     };
-    deleteCallback = new DeleteOperation.Callback() {
+    deleteCallback = new DataCallback() {
       public void complete(Operation operation) {
         fail("Unexpected invocation");
       }
 
-      public void gotData(long cas) {
+      public void gotData(String key, int flags, long cas, byte[] data) {
       }
 
       public void receivedStatus(Operation operation, OperationStatus status) {
@@ -205,8 +206,8 @@ public abstract class OperationFactoryTestBase extends MockObjectTestCase {
   }
 
   public void testSingleGetOperationCloning() {
-    GetOperation.Callback callback =
-        (GetOperation.Callback) mock(GetOperation.Callback.class).proxy();
+    DataCallback callback =
+        (DataCallback) mock(DataCallback.class).proxy();
     GetOperation op = ofact.get(TEST_KEY, callback);
 
     GetOperation op2 = cloneOne(GetOperation.class, op);
@@ -215,8 +216,8 @@ public abstract class OperationFactoryTestBase extends MockObjectTestCase {
   }
 
   public void testSingleGetsOperationCloning() {
-    GetsOperation.Callback callback =
-        (GetsOperation.Callback) mock(GetsOperation.Callback.class).proxy();
+    DataCallback callback =
+        (DataCallback) mock(DataCallback.class).proxy();
     GetsOperation op = ofact.gets(TEST_KEY, callback);
 
     GetsOperation op2 = cloneOne(GetsOperation.class, op);
@@ -227,8 +228,8 @@ public abstract class OperationFactoryTestBase extends MockObjectTestCase {
   // These are harder cases as they fan out.
   public void testMultipleGetOperationCloning() {
     Collection<String> keys = Arrays.asList("k1", "k2", "k3");
-    GetOperation.Callback callback =
-        (GetOperation.Callback) mock(GetOperation.Callback.class).proxy();
+    DataCallback callback =
+        (DataCallback) mock(DataCallback.class).proxy();
     GetOperation op = ofact.get(keys, callback);
 
     Collection<Operation> ops = ofact.clone(op);
@@ -247,7 +248,7 @@ public abstract class OperationFactoryTestBase extends MockObjectTestCase {
 
   public void testMultipleGetOperationFanout() {
     Collection<String> keys = Arrays.asList("k1", "k2", "k3");
-    Mock m = mock(GetOperation.Callback.class);
+    Mock m = mock(DataCallback.class);
     OperationStatus st = new OperationStatus(true, "blah");
     m.expects(once()).method("complete");
     m.expects(once()).method("receivedStatus").with(same(st));
@@ -258,15 +259,15 @@ public abstract class OperationFactoryTestBase extends MockObjectTestCase {
     m.expects(once()).method("gotData").with(eq("k3"), eq(3),
         isA(byte[].class));
 
-    GetOperation.Callback callback = (GetOperation.Callback) m.proxy();
+    DataCallback callback = (DataCallback) m.proxy();
     GetOperation op = ofact.get(keys, callback);
 
     // Transition each operation callback into the complete state.
     Iterator<String> ki = keys.iterator();
     int i = 0;
     for (Operation o : ofact.clone(op)) {
-      GetOperation.Callback cb = (GetOperation.Callback) o.getCallback();
-      cb.gotData(ki.next(), ++i, new byte[3]);
+      DataCallback cb = (DataCallback) o.getCallback();
+      cb.gotData(ki.next(), ++i, 0, new byte[3]);
       cb.receivedStatus(o, st);
       cb.complete(o);
     }

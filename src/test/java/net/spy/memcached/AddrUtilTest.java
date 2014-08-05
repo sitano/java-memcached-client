@@ -67,7 +67,6 @@ public class AddrUtilTest extends TestCase {
       List<InetSocketAddress> addrs = AddrUtil.getAddresses(s);
       fail("Expected failure, got " + addrs);
     } catch (NumberFormatException e) {
-      e.printStackTrace();
       assertEquals("For input string: \"more\"", e.getMessage());
     }
   }

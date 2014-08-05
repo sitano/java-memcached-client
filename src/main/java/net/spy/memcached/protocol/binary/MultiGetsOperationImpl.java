@@ -23,6 +23,7 @@
 
 package net.spy.memcached.protocol.binary;
 
+import net.spy.memcached.ops.DataCallback;
 import net.spy.memcached.ops.GetsOperation;
 import net.spy.memcached.ops.OperationCallback;
 
@@ -37,7 +38,6 @@ class MultiGetsOperationImpl extends MultiGetOperationBaseImpl implements
 
   @Override
   protected void finishedPayloadCallback(int flags, byte[] data) {
-    Callback cb = (Callback) getCallback();
-    cb.gotData(keys.get(responseOpaque), flags, responseCas, data);
+    ((DataCallback) getCallback()).gotData(keys.get(responseOpaque), flags, responseCas, data);
   }
 }

@@ -54,8 +54,7 @@ public abstract class BaseOperationFactory implements OperationFactory {
     if (op instanceof GetOperation) {
       rv.addAll(cloneGet(op));
     } else if (op instanceof GetsOperation) {
-      GetsOperation.Callback callback =
-          (GetsOperation.Callback) op.getCallback();
+      DataCallback callback = (DataCallback) op.getCallback();
       for (String k : op.getKeys()) {
         rv.add(gets(k, callback));
       }
@@ -65,8 +64,7 @@ public abstract class BaseOperationFactory implements OperationFactory {
           cop.getFlags(), cop.getExpiration(), cop.getData(),
           cop.getCallback()));
     } else if(op instanceof DeleteOperation) {
-      rv.add(delete(first(op.getKeys()),
-          (DeleteOperation.Callback)op.getCallback()));
+      rv.add(delete(first(op.getKeys()), (DataCallback)op.getCallback()));
     } else if (op instanceof MutatorOperation) {
       MutatorOperation mo = (MutatorOperation) op;
       rv.add(mutate(mo.getType(), first(op.getKeys()), mo.getBy(),

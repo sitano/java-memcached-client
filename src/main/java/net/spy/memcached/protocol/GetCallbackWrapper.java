@@ -22,44 +22,47 @@
 
 package net.spy.memcached.protocol;
 
-import net.spy.memcached.ops.GetOperation;
+import net.spy.memcached.ops.DataCallback;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationStatus;
 
 /**
  * Wrapper callback for use in optimized gets.
  */
-public class GetCallbackWrapper implements GetOperation.Callback {
+public class GetCallbackWrapper implements DataCallback {
 
   private static final OperationStatus END = new OperationStatus(true, "END");
 
   private Operation operation;
   private boolean completed = false;
   private int remainingKeys = 0;
-  private GetOperation.Callback cb = null;
+  private DataCallback cb = null;
 
-  public GetCallbackWrapper(Operation op, int k, GetOperation.Callback c) {
+  public GetCallbackWrapper(Operation op, int k, DataCallback c) {
     super();
     operation = op;
     remainingKeys = k;
     cb = c;
   }
 
-  public void gotData(String key, int flags, byte[] data) {
+  @Override
+  public void gotData(String key, int flags, long cas, byte[] data) {
     assert !completed : "Got data for a completed wrapped op";
-    cb.gotData(key, flags, data);
+    cb.gotData(key, flags, cas, data);
     if (--remainingKeys == 0) {
       // Fake a status line
       receivedStatus(operation, END);
     }
   }
 
+  @Override
   public void receivedStatus(Operation operation, OperationStatus status) {
     if (!completed) {
       cb.receivedStatus(operation, status);
     }
   }
 
+  @Override
   public void complete(Operation operation) {
     assert !completed;
     cb.complete(operation);

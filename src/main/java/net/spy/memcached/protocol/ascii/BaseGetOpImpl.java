@@ -28,13 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import net.spy.memcached.KeyUtil;
-import net.spy.memcached.ops.GetAndTouchOperation;
-import net.spy.memcached.ops.GetOperation;
-import net.spy.memcached.ops.GetlOperation;
-import net.spy.memcached.ops.GetsOperation;
-import net.spy.memcached.ops.OperationCallback;
-import net.spy.memcached.ops.OperationState;
-import net.spy.memcached.ops.OperationStatus;
+import net.spy.memcached.ops.*;
 import net.spy.memcached.util.StringUtils;
 
 /**
@@ -147,18 +141,8 @@ abstract class BaseGetOpImpl extends OperationImpl {
       // The callback is most likely a get callback. If it's not, then
       // it's a gets callback.
       OperationCallback cb = getCallback();
-      if (cb instanceof GetOperation.Callback) {
-        GetOperation.Callback gcb = (GetOperation.Callback) cb;
-        gcb.gotData(currentKey, currentFlags, data);
-      } else if (cb instanceof GetsOperation.Callback) {
-        GetsOperation.Callback gcb = (GetsOperation.Callback) cb;
-        gcb.gotData(currentKey, currentFlags, casValue, data);
-      } else if (cb instanceof GetlOperation.Callback) {
-        GetlOperation.Callback gcb = (GetlOperation.Callback) cb;
-        gcb.gotData(currentKey, currentFlags, casValue, data);
-      } else if (cb instanceof GetAndTouchOperation.Callback) {
-        GetAndTouchOperation.Callback gcb = (GetAndTouchOperation.Callback) cb;
-        gcb.gotData(currentKey, currentFlags, casValue, data);
+      if (cb instanceof DataCallback) {
+        ((DataCallback)cb).gotData(currentKey, currentFlags, 0, data);
       } else {
         throw new ClassCastException("Couldn't convert " + cb
             + "to a relevent op");

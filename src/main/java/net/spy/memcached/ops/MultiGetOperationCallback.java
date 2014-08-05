@@ -26,13 +26,14 @@ package net.spy.memcached.ops;
  * MultiOperationCallback for get operations.
  */
 public class MultiGetOperationCallback extends MultiOperationCallback implements
-    GetOperation.Callback {
+    DataCallback {
 
   public MultiGetOperationCallback(OperationCallback original, int todo) {
     super(original, todo);
   }
 
-  public void gotData(String key, int flags, byte[] data) {
-    ((GetOperation.Callback) originalCallback).gotData(key, flags, data);
+  @Override
+  public void gotData(String key, int flags, long cas, byte[] data) {
+    ((DataCallback) originalCallback).gotData(key, flags, cas, data);
   }
 }

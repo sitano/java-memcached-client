@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import net.spy.memcached.AddrUtil;
+import net.spy.memcached.CASResponse;
 import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.ConnectionFactoryBuilder.Protocol;
 import net.spy.memcached.MemcachedClient;
@@ -57,7 +58,7 @@ public class LoaderTest extends SpyObject implements Runnable {
   public void run() {
     CacheLoader cl = new CacheLoader(client);
 
-    Future<Boolean> f = null;
+    Future<CASResponse> f = null;
     for (int i = 0; i < count; i++) {
       f = cl.push("k" + i, "some value");
     }

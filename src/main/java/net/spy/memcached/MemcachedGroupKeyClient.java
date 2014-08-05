@@ -320,13 +320,13 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     final Collection<Operation> ops = new ArrayList<Operation>(1);
     final BulkGetFuture<T> rv = new BulkGetFuture<T>(m, ops, latch);
 
-    GetOperation.Callback cb = new GetOperation.Callback() {
+    final DataCallback cb = new DataCallback() {
       @SuppressWarnings("synthetic-access")
       public void receivedStatus(Operation op, OperationStatus status) {
         rv.setStatus(status);
       }
 
-      public void gotData(String k, int flags, byte[] data) {
+      public void gotData(String k, int flags, long cas, byte[] data) {
         Transcoder<T> tc = tcMap.get(k);
         m.put(k, client.client.getTranscodeService().decode(tc, new CachedData(flags, data, tc.getMaxSize())));
       }
@@ -373,7 +373,7 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     final Collection<Operation> ops = new ArrayList<Operation>(1);
     final BulkGetFuture<CASValue<T>> rv = new BulkGetFuture<CASValue<T>>(m, ops, latch);
 
-    GetsOperation.Callback cb = new GetsOperation.Callback() {
+    final DataCallback cb = new DataCallback() {
       @SuppressWarnings("synthetic-access")
       public void receivedStatus(Operation op, OperationStatus status) {
         rv.setStatus(status);

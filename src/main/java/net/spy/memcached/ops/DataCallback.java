@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2006-2009 Dustin Sallings
+ * Copyright (C) 2009-2011 Couchbase, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +23,14 @@
 
 package net.spy.memcached.ops;
 
-/**
- * Deletion operation.
- */
-public interface DeleteOperation extends KeyedOperation {
+public interface DataCallback extends OperationCallback {
+  /**
+   * Callback for each result.
+   *
+   * @param key the key that was retrieved
+   * @param flags the flags for this value
+   * @param cas the CAS value for this record
+   * @param data the data stored under this key
+   */
+  void gotData(String key, int flags, long cas, byte[] data);
 }

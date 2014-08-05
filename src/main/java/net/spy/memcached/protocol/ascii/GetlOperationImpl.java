@@ -22,6 +22,7 @@
 
 package net.spy.memcached.protocol.ascii;
 
+import net.spy.memcached.ops.DataCallback;
 import net.spy.memcached.ops.GetlOperation;
 
 /**
@@ -31,7 +32,7 @@ class GetlOperationImpl extends BaseGetOpImpl implements GetlOperation {
 
   private static final String CMD = "getl";
 
-  public GetlOperationImpl(String key, int exp, GetlOperation.Callback c) {
+  public GetlOperationImpl(String key, int exp, DataCallback c) {
     super(CMD, exp, c, key);
   }
 }

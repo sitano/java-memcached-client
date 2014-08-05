@@ -53,19 +53,7 @@ import net.spy.memcached.internal.BulkGetFuture;
 import net.spy.memcached.internal.GetFuture;
 import net.spy.memcached.internal.OperationFuture;
 import net.spy.memcached.internal.SingleElementInfiniteIterator;
-import net.spy.memcached.ops.CASOperationStatus;
-import net.spy.memcached.ops.ConcatenationType;
-import net.spy.memcached.ops.DeleteOperation;
-import net.spy.memcached.ops.GetAndTouchOperation;
-import net.spy.memcached.ops.GetOperation;
-import net.spy.memcached.ops.GetsOperation;
-import net.spy.memcached.ops.Mutator;
-import net.spy.memcached.ops.Operation;
-import net.spy.memcached.ops.OperationCallback;
-import net.spy.memcached.ops.OperationState;
-import net.spy.memcached.ops.OperationStatus;
-import net.spy.memcached.ops.StatsOperation;
-import net.spy.memcached.ops.StoreType;
+import net.spy.memcached.ops.*;
 import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.TranscodeService;
 import net.spy.memcached.transcoders.Transcoder;
@@ -1076,10 +1064,10 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
       final OperationListener<T> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final GetFuture<T> rv = new GetFuture<T>(latch, operationTimeout, key);
-    final Operation op = opFact.get(key, new GetOperation.Callback() {
+    final Operation op = opFact.get(key, new DataCallback() {
       private Future<T> val = null;
 
-      public void gotData(String k, int flags, byte[] data) {
+      public void gotData(String k, int flags, long cas, byte[] data) {
         assert key.equals(k) : "Wrong key returned";
         val = tcService.decode(tc, new CachedData(flags, data, tc.getMaxSize()));
       }
@@ -1148,7 +1136,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
       final OperationListener<CASValue<T>> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASValue<T>> rv = new OperationFuture<CASValue<T>>(key, latch, operationTimeout);
-    final Operation op = opFact.gets(key, new GetsOperation.Callback() {
+    final Operation op = opFact.gets(key, new DataCallback() {
       private CASValue<T> val = null;
 
       public void gotData(String k, int flags, long cas, byte[] data) {
@@ -1380,8 +1368,8 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Collection<Operation> ops = new ArrayList<Operation>(chunks.size());
     final BulkGetFuture<T> rv = new BulkGetFuture<T>(m, ops, latch);
 
-    GetOperation.Callback cb = new GetOperation.Callback() {
-      public void gotData(String k, int flags, byte[] data) {
+    DataCallback cb = new DataCallback() {
+      public void gotData(String k, int flags, long cas, byte[] data) {
         Transcoder<T> tc = tcMap.get(k);
         m.put(k, tcService.decode(tc, new CachedData(flags, data, tc.getMaxSize())));
       }
@@ -1446,7 +1434,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Collection<Operation> ops = new ArrayList<Operation>(chunks.size());
     final BulkGetFuture<CASValue<T>> rv = new BulkGetFuture<CASValue<T>>(m, ops, latch);
 
-    GetsOperation.Callback cb = new GetsOperation.Callback() {
+    DataCallback cb = new DataCallback() {
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert cas > 0 : "CAS was less than zero:  " + cas;
         Transcoder<T> tc = tcMap.get(k);
@@ -1935,7 +1923,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final OperationFuture<CASValue<T>> rv = new OperationFuture<CASValue<T>>(
             key, latch, operationTimeout);
 
-    Operation op = opFact.getAndTouch(key, exp, new GetAndTouchOperation.Callback() {
+    Operation op = opFact.getAndTouch(key, exp, new DataCallback() {
       private CASValue<T> val = null;
 
       public void gotData(String k, int flags, long cas, byte[] data) {
@@ -2617,8 +2605,8 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
             latch, operationTimeout);
     DeleteOperation op = quite
         ? opFact.deleteQuiet(key)
-        : opFact.delete(key, new DeleteOperation.Callback() {
-      public void gotData(long cas) {
+        : opFact.delete(key, new DataCallback() {
+      public void gotData(String k, int flags, long cas, byte[] data) {
         rv.setCas(cas);
       }
 

@@ -29,34 +29,8 @@ import java.util.Map;
 
 import javax.security.auth.callback.CallbackHandler;
 
-import net.spy.memcached.ops.BaseOperationFactory;
-import net.spy.memcached.ops.CASOperation;
-import net.spy.memcached.ops.ConcatenationOperation;
-import net.spy.memcached.ops.ConcatenationType;
-import net.spy.memcached.ops.DeleteOperation;
-import net.spy.memcached.ops.FlushOperation;
-import net.spy.memcached.ops.GetAndTouchOperation;
-import net.spy.memcached.ops.GetOperation;
-import net.spy.memcached.ops.GetlOperation;
-import net.spy.memcached.ops.GetsOperation;
-import net.spy.memcached.ops.KeyedOperation;
-import net.spy.memcached.ops.MultiGetOperationCallback;
-import net.spy.memcached.ops.Mutator;
-import net.spy.memcached.ops.MutatorOperation;
-import net.spy.memcached.ops.NoopOperation;
-import net.spy.memcached.ops.ObserveOperation;
-import net.spy.memcached.ops.Operation;
-import net.spy.memcached.ops.OperationCallback;
-import net.spy.memcached.ops.SASLAuthOperation;
-import net.spy.memcached.ops.SASLMechsOperation;
-import net.spy.memcached.ops.SASLStepOperation;
-import net.spy.memcached.ops.StatsOperation;
+import net.spy.memcached.ops.*;
 import net.spy.memcached.ops.StatsOperation.Callback;
-import net.spy.memcached.ops.StoreOperation;
-import net.spy.memcached.ops.StoreType;
-import net.spy.memcached.ops.TapOperation;
-import net.spy.memcached.ops.UnlockOperation;
-import net.spy.memcached.ops.VersionOperation;
 import net.spy.memcached.tapmessage.RequestMessage;
 import net.spy.memcached.tapmessage.TapOpcode;
 
@@ -65,7 +39,7 @@ import net.spy.memcached.tapmessage.TapOpcode;
  */
 public class AsciiOperationFactory extends BaseOperationFactory {
 
-  public DeleteOperation delete(String key, DeleteOperation.Callback cb) {
+  public DeleteOperation delete(String key, DataCallback cb) {
     return new DeleteOperationImpl(key, cb);
   }
 
@@ -78,20 +52,20 @@ public class AsciiOperationFactory extends BaseOperationFactory {
   }
 
   public GetAndTouchOperation getAndTouch(String key, int expiration,
-      GetAndTouchOperation.Callback cb) {
+      DataCallback cb) {
     throw new UnsupportedOperationException("Get and touch is not supported "
         + "for ASCII protocol");
   }
 
-  public GetOperation get(String key, GetOperation.Callback cb) {
+  public GetOperation get(String key, DataCallback cb) {
     return new GetOperationImpl(key, cb);
   }
 
-  public GetOperation get(Collection<String> keys, GetOperation.Callback cb) {
+  public GetOperation get(Collection<String> keys, DataCallback cb) {
     return new GetOperationImpl(keys, cb);
   }
 
-  public GetlOperation getl(String key, int exp, GetlOperation.Callback cb) {
+  public GetlOperation getl(String key, int exp, DataCallback cb) {
     return new GetlOperationImpl(key, exp, cb);
   }
 
@@ -106,11 +80,11 @@ public class AsciiOperationFactory extends BaseOperationFactory {
     return new UnlockOperationImpl(key, casId, cb);
   }
 
-  public GetsOperation gets(String key, GetsOperation.Callback cb) {
+  public GetsOperation gets(String key, DataCallback cb) {
     return new GetsOperationImpl(key, cb);
   }
 
-  public GetsOperation gets(Collection<String> keys, GetsOperation.Callback cb) {
+  public GetsOperation gets(Collection<String> keys, DataCallback cb) {
     return new GetsOperationImpl(keys, cb);
   }
 
@@ -160,7 +134,7 @@ public class AsciiOperationFactory extends BaseOperationFactory {
   @Override
   protected Collection<? extends Operation> cloneGet(KeyedOperation op) {
     Collection<Operation> rv = new ArrayList<Operation>();
-    GetOperation.Callback callback =
+    DataCallback callback =
         new MultiGetOperationCallback(op.getCallback(), op.getKeys().size());
     for (String k : op.getKeys()) {
       rv.add(get(k, callback));
