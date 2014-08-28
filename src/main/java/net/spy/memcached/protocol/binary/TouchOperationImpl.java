@@ -24,7 +24,6 @@
 package net.spy.memcached.protocol.binary;
 
 import net.spy.memcached.ops.OperationCallback;
-import static net.spy.memcached.protocol.binary.OperationImpl.STATUS_OK;
 
 /**
  * Operation to reset a timeout in Membase server.
@@ -47,7 +46,7 @@ public class TouchOperationImpl extends SingleKeyOperationImpl {
 
   @Override
   protected void decodePayload(byte[] pl) {
-    getCallback().receivedStatus(STATUS_OK);
+    getCallback().receivedStatus(this, STATUS_OK);
   }
 
   @Override

@@ -581,9 +581,9 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
   public void testTouch() throws Exception {
     assertNull(client.get("touchtest"));
     assertNull(client.get("nonexistent"));
-    assertTrue(client.set("touchtest", 5, "touchtest").get());
-    assertTrue(client.touch("touchtest", 2).get());
-    assertFalse(client.touch("nonexistent", 2).get());
+    assertEquals(client.set("touchtest", 5, "touchtest").get().type, CASResponseType.OK);
+    assertEquals(client.touch("touchtest", 2).get().type, CASResponseType.OK);
+    assertFalse(client.touch("nonexistent", 2).get().type == CASResponseType.OK);
   }
 
   public void testGracefulShutdown() throws Exception {

@@ -62,7 +62,7 @@ final class TouchOperationImpl extends OperationImpl implements TouchOperation {
   @Override
   public void handleLine(String line) {
     getLogger().debug("Touch completed successfully");
-    getCallback().receivedStatus(matchStatus(line, OK));
+    getCallback().receivedStatus(this, matchStatus(line, OK));
     transitionState(OperationState.COMPLETE);
   }
 
