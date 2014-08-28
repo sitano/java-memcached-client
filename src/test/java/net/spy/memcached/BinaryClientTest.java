@@ -55,6 +55,18 @@ public class BinaryClientTest extends ProtocolBaseCase {
         TestConfig.PORT_NUMBER));
   }
 
+  public void testDeleteWithCAS() throws Exception {
+    final String key = "delete.with.cas";
+    final long wrongCAS = 1234;
+
+    OperationFuture<CASResponse> setFuture = client.set(key, 0, "test");
+    assertEquals(setFuture.get().type, CASResponseType.OK);
+
+    assertFalse(client.delete(key, wrongCAS).get().type == CASResponseType.OK);
+    assertEquals(client.delete(key, setFuture.getCas()).get().type, CASResponseType.OK);
+    assertNull(client.get(key));
+  }
+
   public void testCASAppendFail() throws Exception {
     final String key = "append.key";
     assertTrue(client.set(key, 5, "test").get().type == CASResponseType.OK);

@@ -55,12 +55,31 @@ public interface OperationFactory {
   DeleteOperation delete(String key, DataCallback callback);
 
   /**
+   * Create a deletion operation.
+   *
+   * @param key the key to delete
+   * @param cas the value of CAS
+   * @param operationCallback the status callback
+   * @return the new DeleteOperation
+   */
+  DeleteOperation delete(String key, long cas, DataCallback operationCallback);
+
+  /**
    * Create a quite deletion operation.
    *
    * @param key the key to delete
    * @return the new DeleteOperation
    */
   DeleteOperation deleteQuiet(String key);
+
+  /**
+   * Create a quite deletion operation.
+   *
+   * @param key the key to delete
+   * @param cas the value of CAS
+   * @return the new DeleteOperation
+   */
+  DeleteOperation deleteQuiet(String key, long cas);
 
   /**
    * Create a Unlock operation.

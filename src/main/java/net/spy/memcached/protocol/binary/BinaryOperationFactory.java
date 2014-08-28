@@ -42,8 +42,16 @@ public class BinaryOperationFactory extends BaseOperationFactory {
     return new DeleteOperationImpl(key, operationCallback);
   }
 
+  public DeleteOperation delete(String key, long cas, DataCallback operationCallback) {
+    return new DeleteOperationImpl(key, cas, operationCallback);
+  }
+
   public DeleteOperation deleteQuiet(String key) {
     return new QuietDeleteOperationImpl(key);
+  }
+
+  public DeleteOperation deleteQuiet(String key, long cas) {
+    return new QuietDeleteOperationImpl(key, cas);
   }
 
   public UnlockOperation unlock(String key, long casId,

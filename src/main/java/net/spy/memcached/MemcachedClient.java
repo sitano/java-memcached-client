@@ -2678,39 +2678,28 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   /**
    * Delete the given key from the cache.
    *
-   * <p>
-   * The hold argument specifies the amount of time in seconds (or Unix time
-   * until which) the client wishes the server to refuse "add" and "replace"
-   * commands with this key. For this amount of item, the item is put into a
-   * delete queue, which means that it won't possible to retrieve it by the
-   * "get" command, but "add" and "replace" command with this key will also fail
-   * (the "set" command will succeed, however). After the time passes, the item
-   * is finally deleted from server memory.
-   * </p>
-   *
-   * @param key the key to delete
-   * @param hold how long the key should be unavailable to add commands
-   *
-   * @return whether or not the operation was performed
-   * @deprecated Hold values are no longer honored.
-   */
-  @Deprecated
-  public OperationFuture<CASResponse> delete(String key, int hold) {
-    return delete(key);
-  }
-
-  /**
-   * Delete the given key from the cache.
-   *
    * @param key the key to delete
    * @return whether or not the operation was performed
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
   public OperationFuture<CASResponse> delete(String key) {
-    return delete(key, null);
+    return delete(key, 0L);
   }
 
+  /**
+   * Delete the given key from the cache of the given CAS value applies.
+   *
+   *
+   * @param key the key to delete
+   * @param cas the CAS value to apply.
+   * @return whether or not the operation was performed
+   * @throws IllegalStateException in the rare circumstance where queue is too
+   *           full to accept any more requests
+   */
+  public OperationFuture<CASResponse> delete(String key, long cas) {
+    return delete(key, null);
+  }
 
   /**
    * Delete the given key from the cache.
@@ -2721,18 +2710,18 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *           full to accept any more requests
    */
   public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    return delete(this, null, false, key, listener);
+    return delete(this, null, false, key, 0, listener);
   }
 
   protected OperationFuture<CASResponse> delete(
       final MemcachedClientIF client, final MemcachedNode opNode,
-      boolean quite, String key, final OperationListener<CASResponse> listener) {
+      boolean quite, String key, long cas, final OperationListener<CASResponse> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key,
             latch, operationTimeout);
     DeleteOperation op = quite
-        ? opFact.deleteQuiet(key)
-        : opFact.delete(key, new DataCallback() {
+        ? opFact.deleteQuiet(key, cas)
+        : opFact.delete(key, cas, new DataCallback() {
       public void gotData(String k, int flags, long cas, byte[] data) {
         rv.setCas(cas);
       }

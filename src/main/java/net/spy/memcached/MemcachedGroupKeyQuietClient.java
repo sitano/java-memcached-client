@@ -544,12 +544,16 @@ class MemcachedGroupKeyQuietClient extends MemcachedGroupKeyClient {
     throw new UnsupportedOperationException();     // TODO: clent.mutateWithDefault(groupNode, Mutator.decr, key, (long) by, def, 0);
   }
 
-  public OperationFuture<CASResponse> delete(String key) {
-    return super.delete(true, key, null);
+  public Future<CASResponse> delete(String key) {
+    return client.delete(this, groupNode, true, key, 0, null);
   }
 
-  public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    return super.delete(true, key, null);
+  public Future<CASResponse> delete(String key, long cas) {
+    return client.delete(this, groupNode, true, key, cas, null);
+  }
+
+  public Future<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
+    return client.delete(this, groupNode, true, key, 0, listener);
   }
 
   public OperationFuture<Boolean> flush(final int delay) {

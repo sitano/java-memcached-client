@@ -684,24 +684,24 @@ class MemcachedGroupKeyClient implements MemcachedClientIF {
     return client.mutateWithDefault(groupNode, Mutator.decr, key, (long) by, def, 0);
   }
 
-  public OperationFuture<CASResponse> delete(String key) {
-    return delete(key, null);
+  public Future<CASResponse> delete(String key) {
+    return delete(key, 0L);
   }
 
-  public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    return delete(false, key, listener);
+  @Override
+  public Future<CASResponse> delete(String key, long cas) {
+    return client.delete(this, groupNode, false, key, cas, null);
   }
 
-  protected OperationFuture<CASResponse> delete(boolean quite,
-      String key, final OperationListener<CASResponse> listener) {
-    return client.delete(this, groupNode, quite, key, listener);
+  public Future<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
+    return client.delete(this, groupNode, false, key, 0, listener);
   }
 
-  public OperationFuture<Boolean> flush(final int delay) {
+  public Future<Boolean> flush(final int delay) {
     return client.flush(delay);
   }
 
-  public OperationFuture<Boolean> flush() {
+  public Future<Boolean> flush() {
     return client.flush();
   }
 

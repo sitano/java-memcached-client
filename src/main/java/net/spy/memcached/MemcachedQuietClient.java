@@ -545,11 +545,16 @@ class MemcachedQuietClient implements MemcachedClientIF {
   }
 
   public OperationFuture<CASResponse> delete(String key) {
-    return client.delete(this, null, true, key, null);
+    return client.delete(this, null, true, key, 0, null);
+  }
+
+  @Override
+  public Future<CASResponse> delete(String key, long cas) {
+    return client.delete(this, null, true, key, cas, null);
   }
 
   public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
-    return client.delete(this, null, true, key, null);
+    return client.delete(this, null, true, key, 0, null);
   }
 
   public OperationFuture<Boolean> flush(final int delay) {
