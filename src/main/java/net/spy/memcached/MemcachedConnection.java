@@ -660,6 +660,11 @@ public class MemcachedConnection extends SpyThread {
       final MemcachedNode qa = i.next();
       i.remove();
       try {
+        if(!belongsToCluster(qa)) {
+          getLogger().debug("Node does not belong to cluster anymore, "
+            + "skipping reconnect: %s", qa);
+          continue;
+        }
         if (!seen.containsKey(qa)) {
           seen.put(qa, Boolean.TRUE);
           getLogger().info("Reconnecting %s", qa);
