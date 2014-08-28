@@ -179,7 +179,19 @@ class MemcachedNodeROImpl implements MemcachedNode {
     throw new UnsupportedOperationException();
   }
 
-  public Map<LocalStatType, String> getLocalStats(){
+  public Map<LocalStatType, String> getLocalStats() {
     return root.getLocalStats();
+  }
+
+  public boolean isAuthenticated() {
+    throw new UnsupportedOperationException();
+  }
+
+  public long lastReadDelta() {
+    throw new UnsupportedOperationException();
+  }
+
+  public void completedRead() {
+    throw new UnsupportedOperationException();
   }
 }

@@ -208,4 +208,16 @@ public class MockMemcachedNode implements MemcachedNode {
     localStatMap.put(LocalStatType.INPUT_QUEUE_SIZE, String.valueOf(0));
     return localStatMap;
   }
+
+  public boolean isAuthenticated() {
+    return true;
+  }
+
+  public long lastReadDelta() {
+    return 0;
+  }
+
+  public void completedRead() {
+    // noop
+  }
 }

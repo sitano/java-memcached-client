@@ -35,6 +35,7 @@ import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -580,6 +581,7 @@ public class MemcachedConnection extends SpyThread {
       }
       rbuf.clear();
       read = channel.read(rbuf);
+      qa.completedRead();
     }
   }
 
@@ -890,6 +892,25 @@ public class MemcachedConnection extends SpyThread {
   }
 
   /**
+   * Get information about connections and their active status.
+   */
+  public String connectionsStatus() {
+    StringBuilder connStatus = new StringBuilder();
+    connStatus.append("Connection Status {");
+    for (MemcachedNode node : locator.getAll()) {
+      connStatus.append(" ");
+      connStatus.append(node.getSocketAddress())
+        .append(" active: ").append(node.isActive())
+        .append(", authed: ").append(node.isAuthenticated())
+        .append(MessageFormat.format(", last read: {0} ms ago",
+          node.lastReadDelta()));
+    }
+
+    connStatus.append(" }");
+    return connStatus.toString();
+  }
+
+  /**
    * helper method: increase timeout count on node attached to this op.
    *
    * @param op
@@ -930,6 +951,9 @@ public class MemcachedConnection extends SpyThread {
     }
   }
 
+  /**
+   * Check to see if this connection is shutting down.
+   */
   protected void checkState() {
     if (shutDown) {
       throw new IllegalStateException("Shutting down");
