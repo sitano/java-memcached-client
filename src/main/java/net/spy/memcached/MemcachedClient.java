@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -681,6 +682,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @param tc the transcoder to serialize and unserialize the value
    * @return a CASResponse
    * @throws OperationTimeoutException if global operation timeout is exceeded
+   * @throws CancellationException if operation was canceled
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
@@ -692,7 +694,11 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for value", e);
     } catch (ExecutionException e) {
-      throw new RuntimeException("Exception waiting for value", e);
+      if(e.getCause() instanceof CancellationException) {
+        throw (CancellationException) e.getCause();
+      } else {
+        throw new RuntimeException("Exception waiting for value", e);
+      }
     } catch (TimeoutException e) {
       throw new OperationTimeoutException("Timeout waiting for value", e);
     }
@@ -1191,6 +1197,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @param tc the transcoder to serialize and unserialize value
    * @return the result from the cache and CAS id (null if there is none)
    * @throws OperationTimeoutException if global operation timeout is exceeded
+   * @throws CancellationException if operation was canceled
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
@@ -1200,7 +1207,11 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for value", e);
     } catch (ExecutionException e) {
-      throw new RuntimeException("Exception waiting for value", e);
+      if(e.getCause() instanceof CancellationException) {
+        throw (CancellationException) e.getCause();
+      } else {
+        throw new RuntimeException("Exception waiting for value", e);
+      }
     } catch (TimeoutException e) {
       throw new OperationTimeoutException("Timeout waiting for value", e);
     }
@@ -1216,6 +1227,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @return the result from the cache (null if there is none)
    * @throws OperationTimeoutException if the global operation timeout is
    *           exceeded
+   * @throws CancellationException if operation was canceled
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
@@ -1226,7 +1238,11 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for value", e);
     } catch (ExecutionException e) {
-      throw new RuntimeException("Exception waiting for value", e);
+      if(e.getCause() instanceof CancellationException) {
+        throw (CancellationException) e.getCause();
+      } else {
+        throw new RuntimeException("Exception waiting for value", e);
+      }
     } catch (TimeoutException e) {
       throw new OperationTimeoutException("Timeout waiting for value", e);
     }
@@ -1270,6 +1286,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @return the result from the cache (null if there is none)
    * @throws OperationTimeoutException if the global operation timeout is
    *           exceeded
+   * @throws CancellationException if operation was canceled
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
@@ -1279,7 +1296,11 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for value", e);
     } catch (ExecutionException e) {
-      throw new RuntimeException("Exception waiting for value", e);
+      if(e.getCause() instanceof CancellationException) {
+        throw (CancellationException) e.getCause();
+      } else {
+        throw new RuntimeException("Exception waiting for value", e);
+      }
     } catch (TimeoutException e) {
       throw new OperationTimeoutException("Timeout waiting for value", e);
     }
@@ -1951,6 +1972,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @return a map of the values (for each value that exists)
    * @throws OperationTimeoutException if the global operation timeout is
    *           exceeded
+   * @throws CancellationException if operation was canceled
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
@@ -1962,9 +1984,13 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted getting bulk values", e);
     } catch (ExecutionException e) {
-      throw new RuntimeException("Failed getting bulk values", e);
+      if(e.getCause() instanceof CancellationException) {
+        throw (CancellationException) e.getCause();
+      } else {
+        throw new RuntimeException("Exception waiting for bulk values", e);
+      }
     } catch (TimeoutException e) {
-      throw new OperationTimeoutException("Timeout waiting for bulkvalues", e);
+      throw new OperationTimeoutException("Timeout waiting for bulk values", e);
     }
   }
 
@@ -2351,7 +2377,11 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
       } catch (InterruptedException e) {
         throw new RuntimeException("Interrupted waiting for store", e);
       } catch (ExecutionException e) {
-        throw new RuntimeException("Failed waiting for store", e);
+        if(e.getCause() instanceof CancellationException) {
+          throw (CancellationException) e.getCause();
+        } else {
+          throw new RuntimeException("Failed waiting for store", e);
+        }
       } catch (TimeoutException e) {
         throw new OperationTimeoutException("Timeout waiting to mutate or init"
             + " value", e);
