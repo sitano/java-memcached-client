@@ -79,6 +79,11 @@ public class BinaryOperationFactory extends BaseOperationFactory {
     return new MultiGetOperationImpl(value, cb);
   }
 
+  public ReplicaGetOperation replicaGet(String key, int index,
+                                        DataCallback callback) {
+    return new ReplicaGetOperationImpl(key, index, callback);
+  }
+
   public GetlOperation getl(String key, int exp, DataCallback cb) {
     return new GetlOperationImpl(key, exp, cb);
   }
@@ -140,6 +145,11 @@ public class BinaryOperationFactory extends BaseOperationFactory {
       DataCallback cb = new MultiGetOperationCallback(op.getCallback(), op.getKeys().size());
       for (String k : op.getKeys()) {
         rv.add(get(k, cb));
+      }
+    } else if(op instanceof ReplicaGetOperation) {
+      DataCallback replicaGetCb = new MultiReplicaGetOperationCallback(op.getCallback(), op.getKeys().size());
+      for (String k : op.getKeys()) {
+        rv.add(replicaGet(k, ((ReplicaGetOperationImpl)op).getReplicaIndex() ,replicaGetCb));
       }
     } else {
       DataCallback cb = new MultiGetsOperationCallback(op.getCallback(), op.getKeys().size());

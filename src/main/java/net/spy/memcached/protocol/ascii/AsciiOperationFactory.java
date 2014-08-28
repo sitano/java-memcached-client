@@ -30,7 +30,6 @@ import java.util.Map;
 import javax.security.auth.callback.CallbackHandler;
 
 import net.spy.memcached.ops.*;
-import net.spy.memcached.ops.StatsOperation.Callback;
 import net.spy.memcached.tapmessage.RequestMessage;
 import net.spy.memcached.tapmessage.TapOpcode;
 
@@ -97,7 +96,7 @@ public class AsciiOperationFactory extends BaseOperationFactory {
     return new GetsOperationImpl(keys, cb);
   }
 
-  public StatsOperation keyStats(String key, Callback cb) {
+  public StatsOperation keyStats(String key, StatsOperation.Callback cb) {
     throw new UnsupportedOperationException("Key stats are not supported "
         + "for ASCII protocol");
   }
@@ -203,5 +202,12 @@ public class AsciiOperationFactory extends BaseOperationFactory {
   public TapOperation tapDump(String id, OperationCallback cb) {
     throw new UnsupportedOperationException("Tap is not supported for ASCII"
         + " protocol");
+  }
+
+  @Override
+  public ReplicaGetOperation replicaGet(String key, int index,
+  DataCallback callback) {
+    throw new UnsupportedOperationException("Replica get is not supported "
+        + "for ASCII protocol");
   }
 }

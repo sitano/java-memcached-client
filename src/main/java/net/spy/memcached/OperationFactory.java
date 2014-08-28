@@ -134,6 +134,16 @@ public interface OperationFactory {
   GetOperation get(String key, DataCallback callback);
 
   /**
+   * Create a replica get operation.
+   *
+   * @param key the key to get
+   * @param callback the callback that will contain the results
+   * @return a new ReplicaGetOperation
+   */
+  ReplicaGetOperation replicaGet(String key, int index,
+    DataCallback callback);
+
+  /**
    * Create a getl operation. A getl gets the value for a key and then locks the
    * value for a given amount of time. The maximum default lock time is 30
    * seconds.
