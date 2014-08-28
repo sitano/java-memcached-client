@@ -57,7 +57,7 @@ public abstract class BaseOperationImpl extends SpyObject implements Operation {
   private OperationException exception = null;
   protected OperationCallback callback = null;
   private volatile MemcachedNode handlingNode = null;
-  private boolean timedout;
+  private volatile boolean timedout;
   private long creationTime;
   private boolean timedOutUnsent = false;
   protected Collection<MemcachedNode> notMyVbucketNodes =
@@ -212,14 +212,11 @@ public abstract class BaseOperationImpl extends SpyObject implements Operation {
       timedout = true;
       callback.receivedStatus(this, TIMED_OUT);
       callback.complete(this);
-    } else {
-      // timedout would be false, but we cannot allow you to untimeout an
-      // operation
-      if (timedout) {
-        throw new IllegalArgumentException("Operation has already timed out;"
-            + " ttl specified would allow it to be valid.");
-      }
     }
+    // else:
+    // timedout would be false, but we cannot allow you to untimeout an
+    // operation.  This can happen when the latch timeout is shorter than the
+    // default operation timeout.
     return timedout;
   }
 
