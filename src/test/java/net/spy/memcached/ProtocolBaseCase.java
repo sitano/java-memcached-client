@@ -883,6 +883,24 @@ public abstract class ProtocolBaseCase extends ClientBaseCase {
     assertNull(client.get(key));
   }
 
+  public void testAppendWithoutCAS() throws Exception {
+    final String key = "append.key";
+    assertEquals(client.set(key, 5, "test").get().type, CASResponseType.OK);
+    OperationFuture<CASResponse> op = client.append(key, "es");
+    assertEquals(op.get().type, CASResponseType.OK);
+    assert op.getStatus().isSuccess();
+    assertEquals("testes", client.get(key));
+  }
+
+  public void testPrependWithoutCAS() throws Exception {
+    final String key = "prepend.key";
+    assertEquals(client.set(key, 5, "test").get().type, CASResponseType.OK);
+    OperationFuture<CASResponse> op = client.prepend(key, "es");
+    assertEquals(op.get().type, CASResponseType.OK);
+    assert op.getStatus().isSuccess();
+    assertEquals("estest", client.get(key));
+  }
+
   public void testSetReturnsCAS() throws Exception {
     OperationFuture<CASResponse> setOp = client.set("testSetReturnsCAS", 0, "testSetReturnsCAS");
     setOp.get();

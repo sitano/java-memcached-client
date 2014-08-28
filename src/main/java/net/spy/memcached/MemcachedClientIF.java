@@ -56,11 +56,19 @@ public interface MemcachedClientIF {
 
   MemcachedClientIF getQuietClient();
 
+  Future<CASResponse> append(String key, Object val);
+
+  <T> Future<CASResponse> append(String key, T val, Transcoder<T> tc);
+
   Future<CASResponse> append(long cas, String key, Object val);
 
   <T> Future<CASResponse> append(long cas, String key, T val, Transcoder<T> tc);
 
   <T> Future<CASResponse> append(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener);
+
+  Future<CASResponse> prepend(String key, Object val);
+
+  <T> Future<CASResponse> prepend(String key, T val, Transcoder<T> tc);
 
   Future<CASResponse> prepend(long cas, String key, Object val);
 

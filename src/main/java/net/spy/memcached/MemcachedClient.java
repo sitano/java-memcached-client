@@ -436,6 +436,9 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   /**
    * Append to an existing value in the cache.
    *
+   * If 0 is passed in as the CAS identifier, it will override the value
+   * on the server without performing the CAS check.
+   *
    * <p>
    * Note that the return will be false any time a mutation has not occurred.
    * </p>
@@ -454,6 +457,27 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
 
   /**
    * Append to an existing value in the cache.
+   *
+   * <p>
+   * Note that the return will be false any time a mutation has not occurred.
+   * </p>
+   *
+   * @param key the key to whose value will be appended
+   * @param val the value to append
+   * @return a future indicating success, false if there was no change to the
+   *         value
+   * @throws IllegalStateException in the rare circumstance where queue is too
+   *           full to accept any more requests
+   */
+  public OperationFuture<CASResponse> append(String key, Object val) {
+    return append(0, key, val, transcoder);
+  }
+
+  /**
+   * Append to an existing value in the cache.
+   *
+   * If 0 is passed in as the CAS identifier, it will override the value
+   * on the server without performing the CAS check.
    *
    * <p>
    * Note that the return will be false any time a mutation has not occurred.
@@ -493,7 +517,33 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   }
 
   /**
+   * Append to an existing value in the cache.
+   *
+   * If 0 is passed in as the CAS identifier, it will override the value
+   * on the server without performing the CAS check.
+   *
+   * <p>
+   * Note that the return will be false any time a mutation has not occurred.
+   * </p>
+   *
+   * @param <T>
+   * @param key the key to whose value will be appended
+   * @param val the value to append
+   * @param tc the transcoder to serialize and unserialize the value
+   * @return a future indicating success
+   * @throws IllegalStateException in the rare circumstance where queue is too
+   *           full to accept any more requests
+   */
+  public <T> OperationFuture<CASResponse> append(String key, T val,
+      Transcoder<T> tc) {
+    return asyncCat(this, null, ConcatenationType.append, 0, key, val, tc, null);
+  }
+
+  /**
    * Prepend to an existing value in the cache.
+   *
+   * If 0 is passed in as the CAS identifier, it will override the value
+   * on the server without performing the CAS check.
    *
    * <p>
    * Note that the return will be false any time a mutation has not occurred.
@@ -512,6 +562,26 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
 
   /**
    * Prepend to an existing value in the cache.
+   *
+   * <p>
+   * Note that the return will be false any time a mutation has not occurred.
+   * </p>
+   *
+   * @param key the key to whose value will be prepended
+   * @param val the value to append
+   * @return a future indicating success
+   * @throws IllegalStateException in the rare circumstance where queue is too
+   *           full to accept any more requests
+   */
+  public OperationFuture<CASResponse> prepend(String key, Object val) {
+    return prepend(0, key, val, transcoder);
+  }
+
+  /**
+   * Prepend to an existing value in the cache.
+   *
+   * If 0 is passed in as the CAS identifier, it will override the value
+   * on the server without performing the CAS check.
    *
    * <p>
    * Note that the return will be false any time a mutation has not occurred.
@@ -564,6 +634,26 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    */
   public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncCAS(key, casId, 0, value, tc, listener);
+  }
+
+  /**
+   * Prepend to an existing value in the cache.
+   *
+   * <p>
+   * Note that the return will be false any time a mutation has not occurred.
+   * </p>
+   *
+   * @param <T>
+   * @param key the key to whose value will be prepended
+   * @param val the value to append
+   * @param tc the transcoder to serialize and unserialize the value
+   * @return a future indicating success
+   * @throws IllegalStateException in the rare circumstance where queue is too
+   *           full to accept any more requests
+   */
+  public <T> OperationFuture<CASResponse> prepend(String key, T val,
+      Transcoder<T> tc) {
+    return asyncCat(this, null, ConcatenationType.prepend, 0, key, val, tc, null);
   }
 
   /**
