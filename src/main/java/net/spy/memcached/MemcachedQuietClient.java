@@ -166,8 +166,13 @@ class MemcachedQuietClient implements MemcachedClientIF {
     }
   }
 
+  @Override
+  public CASResponse cas(String key, long casId, int exp, Object value) {
+    return cas(key, casId, exp, value, client.getTranscoder());
+  }
+
   public CASResponse cas(String key, long casId, Object value) {
-    return cas(key, casId, value, client.getTranscoder());
+    return cas(key, casId, 0, value);
   }
 
   public <T> OperationFuture<CASResponse> add(String key, int exp, T o,
