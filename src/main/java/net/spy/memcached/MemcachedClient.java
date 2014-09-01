@@ -227,6 +227,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *
    * @return point-in-time view of currently available servers
    */
+  @Override
   public Collection<SocketAddress> getAvailableServers() {
     ArrayList<SocketAddress> rv = new ArrayList<SocketAddress>();
     for (MemcachedNode node : mconn.getLocator().getAll()) {
@@ -248,6 +249,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *
    * @return point-in-time view of currently available servers
    */
+  @Override
   public Collection<SocketAddress> getUnavailableServers() {
     ArrayList<SocketAddress> rv = new ArrayList<SocketAddress>();
     for (MemcachedNode node : mconn.getLocator().getAll()) {
@@ -263,6 +265,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *
    * @return this instance's NodeLocator
    */
+  @Override
   public NodeLocator getNodeLocator() {
     return mconn.getLocator().getReadonlyCopy();
   }
@@ -272,12 +275,13 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @param key Group key to select the node to operate
    * @return Client instance with operational node selected
    */
+  @Override
   public MemcachedClientIF getGroupKey(String key) {
     StringUtils.validateKey(key, opFact instanceof BinaryOperationFactory);
     return new MemcachedGroupKeyClient(this, key);
   }
 
-
+  @Override
   public MemcachedClientIF getQuietClient() {
     return quiet;
   }
@@ -287,6 +291,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    *
    * @return this instance's Transcoder
    */
+  @Override
   public Transcoder<Object> getTranscoder() {
     return transcoder;
   }
@@ -359,10 +364,12 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final CachedData co = tc.encode(value);
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
-    Operation op = opFact.cat(catType, cas, key, co.getData(),
+    final Operation op = opFact.cat(catType, cas, key, co.getData(),
       new OperationCallback() {
+        @Override
         public void receivedStatus(Operation op, OperationStatus val) { onReceivedStatus(rv, op, val); }
 
+        @Override
         public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
       });
     rv.setOperation(op);
@@ -382,6 +389,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> touch(final String key, final int exp) {
     return touch(key, exp, transcoder, null);
   }
@@ -397,6 +405,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> Future<CASResponse> touch(String key, int exp, Transcoder<T> tc) {
     return touch(key, exp, transcoder, null);
   }
@@ -412,20 +421,23 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> touch(final String key, final int exp,
       final Transcoder<T> tc, final OperationListener<CASResponse> listener) {
     return touch(this, null, key, exp, tc, listener);
   }
 
-  protected  <T> OperationFuture<CASResponse> touch(
+  protected <T> OperationFuture<CASResponse> touch(
       final MemcachedClientIF client, final MemcachedNode opNode,
       final String key, final int exp, final Transcoder<T> tc,
       final OperationListener<CASResponse> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
-    Operation op = opFact.touch(key, exp, new OperationCallback() {
+    final Operation op = opFact.touch(key, exp, new OperationCallback() {
+      @Override
       public void receivedStatus(Operation op, OperationStatus val) { onReceivedStatus(rv, op, val); }
 
+      @Override
       public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
@@ -452,6 +464,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> append(long cas, String key, Object val) {
     return append(cas, key, val, transcoder, null);
   }
@@ -470,6 +483,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> append(String key, Object val) {
     return append(0, key, val, transcoder);
   }
@@ -493,6 +507,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> append(long cas, String key, T val, Transcoder<T> tc) {
     return asyncCat(this, null, ConcatenationType.append, cas, key, val, tc, null);
   }
@@ -513,6 +528,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> append(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncCat(this, null, ConcatenationType.append, cas, key, val, tc, listener);
   }
@@ -535,6 +551,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> append(String key, T val,
       Transcoder<T> tc) {
     return asyncCat(this, null, ConcatenationType.append, 0, key, val, tc, null);
@@ -557,6 +574,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> prepend(long cas, String key, Object val) {
     return prepend(cas, key, val, transcoder, null);
   }
@@ -574,6 +592,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> prepend(String key, Object val) {
     return prepend(0, key, val, transcoder);
   }
@@ -597,6 +616,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc) {
     return asyncCat(this, null, ConcatenationType.prepend, cas, key, val, tc, null);
   }
@@ -617,6 +637,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncCat(this, null, ConcatenationType.prepend, cas, key, val, tc, listener);
   }
@@ -633,6 +654,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncCAS(key, casId, 0, value, tc, listener);
   }
@@ -652,6 +674,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> prepend(String key, T val,
       Transcoder<T> tc) {
     return asyncCat(this, null, ConcatenationType.prepend, 0, key, val, tc, null);
@@ -669,6 +692,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, T value, Transcoder<T> tc) {
     return asyncCAS(key, casId, 0, value, tc, null);
   }
@@ -687,6 +711,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> asyncCAS(String key, long casId, int exp,
       T value, Transcoder<T> tc, final OperationListener<CASResponse> listener) {
     return asyncCAS(this, null, key, casId, exp, value, tc, listener);
@@ -700,8 +725,9 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv =
             new OperationFuture<CASResponse>(key, latch, operationTimeout);
-    Operation op = opFact.cas(StoreType.set, key, casId, co.getFlags(), exp,
+    final Operation op = opFact.cas(StoreType.set, key, casId, co.getFlags(), exp,
             co.getData(), new OperationCallback() {
+      @Override
       public void receivedStatus(Operation op, OperationStatus val) {
         if (val instanceof CASOperationStatus) {
           onReceivedStatus(rv, op, (CASOperationStatus) val);
@@ -710,6 +736,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
         }
       }
 
+      @Override
       public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
@@ -747,6 +774,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> asyncCAS(String key, long casId, Object value) {
     return asyncCAS(key, casId, value, transcoder);
   }
@@ -784,6 +812,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> CASResponse cas(String key, long casId, int exp, T value,
       Transcoder<T> tc) {
     try {
@@ -815,6 +844,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public CASResponse cas(String key, long casId, Object value) {
     return cas(key, casId, value, transcoder);
   }
@@ -832,6 +862,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public CASResponse cas(String key, long casId, int exp, Object value) {
     return cas(key, casId, exp, value, transcoder);
   }
@@ -868,6 +899,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> add(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncStore(this, null, StoreType.add, key, exp, o, tc, listener);
@@ -905,6 +937,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> add(String key, int exp, T o,
       Transcoder<T> tc) {
     return asyncStore(this, null, StoreType.add, key, exp, o, tc, null);
@@ -941,6 +974,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> add(String key, int exp, Object o) {
     return asyncStore(this, null, StoreType.add, key, exp, o, transcoder, null);
   }
@@ -977,6 +1011,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> set(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncStore(this, null, StoreType.set, key, exp, o, tc, listener);
@@ -1014,6 +1049,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> set(String key, int exp, T o,
       Transcoder<T> tc) {
     return asyncStore(this, null, StoreType.set, key, exp, o, tc, null);
@@ -1050,6 +1086,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> set(String key, int exp, Object o) {
     return asyncStore(this, null, StoreType.set, key, exp, o, transcoder, null);
   }
@@ -1087,6 +1124,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> replace(String key, int exp, T o,
       Transcoder<T> tc, OperationListener<CASResponse> listener) {
     return asyncStore(this, null, StoreType.replace, key, exp, o, tc, listener);
@@ -1125,6 +1163,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASResponse> replace(String key, int exp, T o,
       Transcoder<T> tc) {
     return asyncStore(this, null, StoreType.replace, key, exp, o, tc, null);
@@ -1161,6 +1200,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> replace(String key, int exp, Object o) {
     return asyncStore(this, null, StoreType.replace, key, exp, o, transcoder, null);
   }
@@ -1176,6 +1216,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> GetFuture<T> asyncGet(final String key, final Transcoder<T> tc, final OperationListener<T> listener) {
     return asyncGet(this, null, key, tc, listener);
   }
@@ -1189,13 +1230,16 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Operation op = opFact.get(key, new DataCallback() {
       private Future<T> val = null;
 
+      @Override
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert key.equals(k) : "Wrong key returned";
         val = tcService.decode(tc, new CachedData(flags, data, tc.getMaxSize()));
       }
 
+      @Override
       public void receivedStatus(Operation op, OperationStatus status) { rv.set(val, status); }
 
+      @Override
       public void complete(Operation op) {
         latch.countDown();
         if (listener != null) {
@@ -1221,6 +1265,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> GetFuture<T> asyncGet(final String key, final Transcoder<T> tc) {
     return asyncGet(key, tc, null);
   }
@@ -1233,6 +1278,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public GetFuture<Object> asyncGet(final String key) {
     return asyncGet(key, transcoder);
   }
@@ -1247,6 +1293,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASValue<T>> asyncGets(final String key,
       final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
     return asyncGets(this, null, key, tc, listener);
@@ -1261,14 +1308,17 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Operation op = opFact.gets(key, new DataCallback() {
       private CASValue<T> val = null;
 
+      @Override
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert key.equals(k) : "Wrong key returned";
         assert cas > 0 : "CAS was less than zero:  " + cas;
         val = new CASValue<T>(cas, tc.decode(new CachedData(flags, data, tc.getMaxSize())));
       }
 
+      @Override
       public void receivedStatus(Operation op, OperationStatus status) { rv.set(val, status); }
 
+      @Override
       public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
@@ -1287,6 +1337,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASValue<T>> asyncGets(final String key,
       final Transcoder<T> tc) {
     return asyncGets(key, tc, null);
@@ -1301,6 +1352,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASValue<Object>> asyncGets(final String key) {
     return asyncGets(key, transcoder);
   }
@@ -1317,6 +1369,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> CASValue<T> gets(String key, Transcoder<T> tc) {
     try {
       return asyncGets(key, tc).get(operationTimeout, TimeUnit.MILLISECONDS);
@@ -1347,6 +1400,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> CASValue<T> getAndTouch(String key, int exp, Transcoder<T> tc) {
     try {
       return asyncGetAndTouch(key, exp, tc).get(operationTimeout,
@@ -1375,6 +1429,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public CASValue<Object> getAndTouch(String key, int exp) {
     return getAndTouch(key, exp, transcoder);
   }
@@ -1389,6 +1444,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public CASValue<Object> gets(String key) {
     return gets(key, transcoder);
   }
@@ -1406,6 +1462,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> T get(String key, Transcoder<T> tc) {
     try {
       return asyncGet(key, tc).get(operationTimeout, TimeUnit.MILLISECONDS);
@@ -1433,6 +1490,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public Object get(String key) {
     return get(key, transcoder);
   }
@@ -1489,6 +1547,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter,
       Iterator<Transcoder<T>> tcIter, final OperationListener<Map<String, T>> listener) {
     final Map<String, Future<T>> m = new ConcurrentHashMap<String, Future<T>>();
@@ -1506,15 +1565,18 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Collection<Operation> ops = new ArrayList<Operation>(chunks.size());
     final BulkGetFuture<T> rv = new BulkGetFuture<T>(m, ops, latch);
 
-    DataCallback cb = new DataCallback() {
+    final DataCallback cb = new DataCallback() {
+      @Override
       public void gotData(String k, int flags, long cas, byte[] data) {
         Transcoder<T> tc = tcMap.get(k);
         m.put(k, tcService.decode(tc, new CachedData(flags, data, tc.getMaxSize())));
       }
 
+      @Override
       @SuppressWarnings("synthetic-access")
       public void receivedStatus(Operation op, OperationStatus status) { rv.setStatus(status); }
 
+      @Override
       public void complete(Operation op) {
         latch.countDown();
         if (listener != null && latch.getCount() < 1) {
@@ -1555,6 +1617,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
        Iterator<Transcoder<T>> tcIter, final OperationListener<Map<String, CASValue<T>>> listener) {
     final Map<String, Future<CASValue<T>>> m = new ConcurrentHashMap<String, Future<CASValue<T>>>();
@@ -1572,16 +1635,20 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final Collection<Operation> ops = new ArrayList<Operation>(chunks.size());
     final BulkGetFuture<CASValue<T>> rv = new BulkGetFuture<CASValue<T>>(m, ops, latch);
 
-    DataCallback cb = new DataCallback() {
+    final DataCallback cb = new DataCallback() {
+
+      @Override
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert cas > 0 : "CAS was less than zero:  " + cas;
         Transcoder<T> tc = tcMap.get(k);
         m.put(k, tcService.decodes(tc, new CachedData(flags, data, tc.getMaxSize()), cas));
       }
 
+      @Override
       @SuppressWarnings("synthetic-access")
       public void receivedStatus(Operation op, OperationStatus status) { rv.setStatus(status); }
 
+      @Override
       public void complete(Operation op) {
         latch.countDown();
         if (listener != null && latch.getCount() < 1) {
@@ -1622,6 +1689,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
       Iterator<Transcoder<T>> tcIter) {
     return asyncGetsBulk(keyIter, tcIter, null);
@@ -1641,6 +1709,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
       Iterator<Transcoder<T>> tcIter, OperationListener<Map<String, CASValue<T>>> listener) {
     return asyncGetsBulk(keys.iterator(), tcIter, listener);
@@ -1660,6 +1729,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
       Iterator<Transcoder<T>> tcIter) {
     return asyncGetsBulk(keys.iterator(), tcIter, null);
@@ -1675,6 +1745,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
       Transcoder<T> tc, OperationListener<Map<String, CASValue<T>>> listener) {
     return asyncGetsBulk(keyIter, new SingleElementInfiniteIterator<Transcoder<T>>(tc), listener);
@@ -1690,6 +1761,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Iterator<String> keyIter,
       Transcoder<T> tc) {
     return asyncGetsBulk(keyIter,
@@ -1706,6 +1778,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
       Transcoder<T> tc, OperationListener<Map<String, CASValue<T>>> listener) {
     return asyncGetsBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
@@ -1722,6 +1795,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, CASValue<T>>> asyncGetsBulk(Collection<String> keys,
      Transcoder<T> tc) {
     return asyncGetsBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
@@ -1737,6 +1811,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, CASValue<Object>>> asyncGetsBulk(
           Iterator<String> keyIter, OperationListener<Map<String, CASValue<Object>>> listener) {
     return asyncGetsBulk(keyIter, transcoder, listener);
@@ -1751,6 +1826,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, CASValue<Object>>> asyncGetsBulk(
           Iterator<String> keyIter) {
     return asyncGetsBulk(keyIter, transcoder);
@@ -1765,6 +1841,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, CASValue<Object>>> asyncGetsBulk(Collection<String> keys, OperationListener<Map<String, CASValue<Object>>> listener) {
     return asyncGetsBulk(keys, transcoder, listener);
   }
@@ -1778,6 +1855,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, CASValue<Object>>> asyncGetsBulk(Collection<String> keys) {
     return asyncGetsBulk(keys, transcoder);
   }
@@ -1796,6 +1874,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter,
       Iterator<Transcoder<T>> tcIter) {
     return asyncGetBulk(keyIter, tcIter, null); 
@@ -1815,6 +1894,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys,
           Iterator<Transcoder<T>> tcIter, OperationListener<Map<String, T>> listener) {
     return asyncGetBulk(keys.iterator(), tcIter, listener);
@@ -1834,6 +1914,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys,
           Iterator<Transcoder<T>> tcIter) {
     return asyncGetBulk(keys.iterator(), tcIter, null);
@@ -1849,6 +1930,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter,
       Transcoder<T> tc, OperationListener<Map<String, T>> listener) {
     return asyncGetBulk(keyIter, new SingleElementInfiniteIterator<Transcoder<T>>(tc), listener);
@@ -1864,6 +1946,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Iterator<String> keyIter,
       Transcoder<T> tc) {
     return asyncGetBulk(keyIter,
@@ -1880,6 +1963,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys,
       Transcoder<T> tc, OperationListener<Map<String, T>> listener) {
     return asyncGetBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
@@ -1896,6 +1980,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Collection<String> keys,
       Transcoder<T> tc) {
     return asyncGetBulk(keys, new SingleElementInfiniteIterator<Transcoder<T>>(
@@ -1911,6 +1996,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, Object>> asyncGetBulk(
          Iterator<String> keyIter, OperationListener<Map<String, Object>> listener) {
     return asyncGetBulk(keyIter, transcoder, listener);
@@ -1925,6 +2011,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, Object>> asyncGetBulk(
          Iterator<String> keyIter) {
     return asyncGetBulk(keyIter, transcoder);
@@ -1939,6 +2026,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, Object>> asyncGetBulk(Collection<String> keys, OperationListener<Map<String, Object>> listener) {
     return asyncGetBulk(keys, transcoder, listener);
   }
@@ -1952,6 +2040,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, Object>> asyncGetBulk(Collection<String> keys) {
     return asyncGetBulk(keys, transcoder);
   }
@@ -1966,6 +2055,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(OperationListener<Map<String, T>> listener, Transcoder<T> tc, String... keys) {
     return asyncGetBulk(Arrays.asList(keys), tc, listener);
   }
@@ -1980,6 +2070,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> BulkFuture<Map<String, T>> asyncGetBulk(Transcoder<T> tc,
       String... keys) {
     return asyncGetBulk(Arrays.asList(keys), tc);
@@ -1993,6 +2084,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, Object>> asyncGetBulk(OperationListener<Map<String, Object>> listener, String... keys) {
     return asyncGetBulk(Arrays.asList(keys), transcoder, listener);
   }
@@ -2005,6 +2097,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public BulkFuture<Map<String, Object>> asyncGetBulk(String... keys) {
     return asyncGetBulk(Arrays.asList(keys), transcoder);
   }
@@ -2018,6 +2111,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASValue<Object>> asyncGetAndTouch(final String key,
       final int exp) {
     return asyncGetAndTouch(key, exp, transcoder);
@@ -2033,6 +2127,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASValue<T>> asyncGetAndTouch(final String key,
      final int exp, final Transcoder<T> tc) {
     return asyncGetAndTouch(key, exp, tc, null);
@@ -2048,6 +2143,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> OperationFuture<CASValue<T>> asyncGetAndTouch(final String key,
       final int exp, final Transcoder<T> tc, final OperationListener<CASValue<T>> listener) {
     return asyncGetAndTouch(this, null, key, exp, tc, listener);
@@ -2061,17 +2157,20 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final OperationFuture<CASValue<T>> rv = new OperationFuture<CASValue<T>>(
             key, latch, operationTimeout);
 
-    Operation op = opFact.getAndTouch(key, exp, new DataCallback() {
+    final Operation op = opFact.getAndTouch(key, exp, new DataCallback() {
       private CASValue<T> val = null;
 
+      @Override
       public void gotData(String k, int flags, long cas, byte[] data) {
         assert k.equals(key) : "Wrong key returned";
         assert cas > 0 : "CAS was less than zero:  " + cas;
         val = new CASValue<T>(cas, tc.decode(new CachedData(flags, data, tc.getMaxSize())));
       }
 
+      @Override
       public void receivedStatus(Operation op, OperationStatus status) { rv.set(val, status); }
 
+      @Override
       public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
@@ -2093,6 +2192,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> Map<String, T> getBulk(Iterator<String> keyIter,
       Transcoder<T> tc) {
     try {
@@ -2122,6 +2222,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public Map<String, Object> getBulk(Iterator<String> keyIter) {
     return getBulk(keyIter, transcoder);
   }
@@ -2138,6 +2239,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> Map<String, T> getBulk(Collection<String> keys,
       Transcoder<T> tc) {
     return getBulk(keys.iterator(), tc);
@@ -2153,6 +2255,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public Map<String, Object> getBulk(Collection<String> keys) {
     return getBulk(keys, transcoder);
   }
@@ -2169,6 +2272,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public <T> Map<String, T> getBulk(Transcoder<T> tc, String... keys) {
     return getBulk(Arrays.asList(keys), tc);
   }
@@ -2183,6 +2287,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public Map<String, Object> getBulk(String... keys) {
     return getBulk(Arrays.asList(keys), transcoder);
   }
@@ -2194,19 +2299,23 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public Map<SocketAddress, String> getVersions() {
     final Map<SocketAddress, String> rv =
         new ConcurrentHashMap<SocketAddress, String>();
 
-    CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
+    final CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
       public Operation newOp(final MemcachedNode n,
           final CountDownLatch latch) {
         final SocketAddress sa = n.getSocketAddress();
         return opFact.version(new OperationCallback() {
+
+          @Override
           public void receivedStatus(Operation op, OperationStatus s) {
             rv.put(sa, s.getMessage());
           }
 
+          @Override
           public void complete(Operation op) {
             latch.countDown();
           }
@@ -2240,6 +2349,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public Map<SocketAddress, Map<String, String>> getStats() {
     return getStats(null);
   }
@@ -2253,20 +2363,24 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public Map<SocketAddress, Map<String, String>> getStats(final String arg) {
     final Map<SocketAddress, Map<String, String>> rv =
         new HashMap<SocketAddress, Map<String, String>>();
 
-    CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
+    final CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
       public Operation newOp(final MemcachedNode n,
           final CountDownLatch latch) {
         final SocketAddress sa = n.getSocketAddress();
         rv.put(sa, new HashMap<String, String>());
         return opFact.stats(arg, new StatsOperation.Callback() {
+
+          @Override
           public void gotStat(String name, String val) {
             rv.get(sa).put(name, val);
           }
 
+          @Override
           @SuppressWarnings("synthetic-access")
           public void receivedStatus(Operation op, OperationStatus status) {
             if (!status.isSuccess()) {
@@ -2274,6 +2388,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
             }
           }
 
+          @Override
           public void complete(Operation op) {
             latch.countDown();
           }
@@ -2291,18 +2406,20 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   protected long mutate(MemcachedNode opNode, Mutator m, String key, long by, long def, int exp) {
     final AtomicLong rv = new AtomicLong();
     final CountDownLatch latch = new CountDownLatch(1);
-    Operation op = opFact.mutate(m, key, by, def, exp,
+    final Operation op = opFact.mutate(m, key, by, def, exp,
         new OperationCallback() {
-        public void receivedStatus(Operation op, OperationStatus s) {
-          // XXX: Potential abstraction leak.
-          // The handling of incr/decr in the binary protocol
-          // Allows us to avoid string processing.
-          rv.set(new Long(s.isSuccess() ? s.getMessage() : "-1"));
-        }
+          @Override
+          public void receivedStatus(Operation op, OperationStatus s) {
+            // XXX: Potential abstraction leak.
+            // The handling of incr/decr in the binary protocol
+            // Allows us to avoid string processing.
+            rv.set(new Long(s.isSuccess() ? s.getMessage() : "-1"));
+          }
 
-        public void complete(Operation op) {
-          latch.countDown();
-        }
+          @Override
+          public void complete(Operation op) {
+            latch.countDown();
+          }
       });
     if (opNode == null) mconn.enqueueOperation(key, op);
     else mconn.enqueueOperation(opNode, op);
@@ -2333,6 +2450,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long incr(String key, long by) {
     return mutate(null, Mutator.incr, key, by, 0, -1);
   }
@@ -2352,6 +2470,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long incr(String key, int by) {
     return mutate(null, Mutator.incr, key, (long)by, 0, -1);
   }
@@ -2371,6 +2490,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long decr(String key, long by) {
     return mutate(null, Mutator.decr, key, by, 0, -1);
   }
@@ -2390,6 +2510,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long decr(String key, int by) {
     return mutate(null, Mutator.decr, key, (long)by, 0, -1);
   }
@@ -2411,6 +2532,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long incr(String key, long by, long def, int exp) {
     return mutateWithDefault(null, Mutator.incr, key, by, def, exp);
   }
@@ -2432,6 +2554,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long incr(String key, int by, long def, int exp) {
     return mutateWithDefault(null, Mutator.incr, key, (long)by, def, exp);
   }
@@ -2453,6 +2576,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long decr(String key, long by, long def, int exp) {
     return mutateWithDefault(null, Mutator.decr, key, by, def, exp);
   }
@@ -2474,6 +2598,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long decr(String key, int by, long def, int exp) {
     return mutateWithDefault(null, Mutator.decr, key, (long)by, def, exp);
   }
@@ -2515,12 +2640,14 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
       final OperationListener<CASLongResponse> listener) {
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASLongResponse> rv = new OperationFuture<CASLongResponse>(key, latch, operationTimeout);
-    Operation op = opFact.mutate(m, key, by, def, exp,
+    final Operation op = opFact.mutate(m, key, by, def, exp,
         new OperationCallback() {
+          @Override
           public void receivedStatus(Operation op, OperationStatus s) {
             rv.set(new CASLongResponse(s.isSuccess(), op.getResponseCas(), s.isSuccess() ? Long.parseLong(s.getMessage()) : -1), s);
           }
 
+          @Override
           public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
         });
     if (opNode == null) mconn.enqueueOperation(key, op);
@@ -2538,6 +2665,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncIncr(String key, long by, OperationListener<CASLongResponse> listener) {
     return asyncMutate(this, null, Mutator.incr, key, by, 0, -1, listener);
   }
@@ -2551,6 +2679,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncIncr(String key, int by, OperationListener<CASLongResponse> listener) {
     return asyncMutate(this, null, Mutator.incr, key, (long)by, 0, -1, listener);
   }
@@ -2564,6 +2693,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncDecr(String key, long by, OperationListener<CASLongResponse> listener) {
     return asyncMutate(this, null, Mutator.decr, key, by, 0, -1, listener);
   }
@@ -2577,6 +2707,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncDecr(String key, int by, OperationListener<CASLongResponse> listener) {
     return asyncMutate(this, null, Mutator.decr, key, (long)by, 0, -1, listener);
   }
@@ -2590,6 +2721,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncIncr(String key, long by) {
     return asyncMutate(this, null, Mutator.incr, key, by, 0, -1, null);
   }
@@ -2603,6 +2735,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncIncr(String key, int by) {
     return asyncMutate(this, null, Mutator.incr, key, (long)by, 0, -1, null);
   }
@@ -2616,6 +2749,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncDecr(String key, long by) {
     return asyncMutate(this, null, Mutator.decr, key, by, 0, -1, null);
   }
@@ -2629,6 +2763,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASLongResponse> asyncDecr(String key, int by) {
     return asyncMutate(this, null, Mutator.decr, key, (long)by, 0, -1, null);
   }
@@ -2645,6 +2780,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long incr(String key, long by, long def) {
     return mutateWithDefault(null, Mutator.incr, key, by, def, 0);
   }
@@ -2661,6 +2797,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long incr(String key, int by, long def) {
     return mutateWithDefault(null, Mutator.incr, key, (long)by, def, 0);
   }
@@ -2677,6 +2814,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long decr(String key, long by, long def) {
     return mutateWithDefault(null, Mutator.decr, key, by, def, 0);
   }
@@ -2693,6 +2831,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public long decr(String key, int by, long def) {
     return mutateWithDefault(null, Mutator.decr, key, (long)by, def, 0);
   }
@@ -2705,6 +2844,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> delete(String key) {
     return delete(key, 0L);
   }
@@ -2719,6 +2859,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> delete(String key, long cas) {
     return delete(key, null);
   }
@@ -2731,6 +2872,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<CASResponse> delete(String key, final OperationListener<CASResponse> listener) {
     return delete(this, null, false, key, 0, listener);
   }
@@ -2741,17 +2883,20 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key,
             latch, operationTimeout);
-    DeleteOperation op = quite
+    final DeleteOperation op = quite
         ? opFact.deleteQuiet(key, cas)
         : opFact.delete(key, cas, new DataCallback() {
+      @Override
       public void gotData(String k, int flags, long cas, byte[] data) {
         rv.setCas(cas);
       }
 
+      @Override
       public void receivedStatus(Operation op, OperationStatus s) {
         rv.set(new CASResponse(s.isSuccess(), op.getResponseCas()), s);
       }
 
+      @Override
       public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
     });
     rv.setOperation(op);
@@ -2768,19 +2913,22 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<Boolean> flush(final int delay) {
     final AtomicReference<Boolean> flushResult =
         new AtomicReference<Boolean>(null);
     final ConcurrentLinkedQueue<Operation> ops =
         new ConcurrentLinkedQueue<Operation>();
-    CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
+    final CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
       public Operation newOp(final MemcachedNode n,
           final CountDownLatch latch) {
-        Operation op = opFact.flush(delay, new OperationCallback() {
+        final Operation op = opFact.flush(delay, new OperationCallback() {
+          @Override
           public void receivedStatus(Operation op, OperationStatus s) {
             flushResult.set(s.isSuccess());
           }
 
+          @Override
           public void complete(Operation op) {
             latch.countDown();
           }
@@ -2836,23 +2984,27 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public OperationFuture<Boolean> flush() {
     return flush(-1);
   }
 
+  @Override
   public Set<String> listSaslMechanisms() {
     final ConcurrentMap<String, String> rv =
         new ConcurrentHashMap<String, String>();
 
-    CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
+    final CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
       public Operation newOp(MemcachedNode n, final CountDownLatch latch) {
         return opFact.saslMechs(new OperationCallback() {
+          @Override
           public void receivedStatus(Operation op, OperationStatus status) {
             for (String s : status.getMessage().split(" ")) {
               rv.put(s, s);
             }
           }
 
+          @Override
           public void complete(Operation op) {
             latch.countDown();
           }
@@ -2872,6 +3024,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   /**
    * Shut down immediately.
    */
+  @Override
   public void shutdown() {
     shutdown(-1, TimeUnit.MILLISECONDS);
   }
@@ -2883,6 +3036,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @param unit the TimeUnit for the timeout
    * @return result of the shutdown request
    */
+  @Override
   public boolean shutdown(long timeout, TimeUnit unit) {
     // Guard against double shutdowns (bug 8).
     if (shuttingDown) {
@@ -2922,15 +3076,18 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @throws IllegalStateException in the rare circumstance where queue is too
    *           full to accept any more requests
    */
+  @Override
   public boolean waitForQueues(long timeout, TimeUnit unit) {
-    CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
+    final CountDownLatch blatch = broadcastOp(new BroadcastOpFactory() {
       public Operation newOp(final MemcachedNode n,
           final CountDownLatch latch) {
         return opFact.noop(new OperationCallback() {
+          @Override
           public void complete(Operation op) {
             latch.countDown();
           }
 
+          @Override
           public void receivedStatus(Operation op, OperationStatus s) {
             // Nothing special when receiving status, only
             // necessary to complete the interface
@@ -2956,6 +3113,7 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @param obs the ConnectionObserver you wish to add
    * @return true if the observer was added.
    */
+  @Override
   public boolean addObserver(ConnectionObserver obs) {
     boolean rv = mconn.addObserver(obs);
     if (rv) {
@@ -2974,10 +3132,12 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
    * @param obs the ConnectionObserver you wish to add
    * @return true if the observer existed, but no longer does
    */
+  @Override
   public boolean removeObserver(ConnectionObserver obs) {
     return mconn.removeObserver(obs);
   }
 
+  @Override
   public void connectionEstablished(SocketAddress sa, int reconnectCount) {
     if (authDescriptor != null) {
       if (authDescriptor.authThresholdReached()) {
@@ -2999,14 +3159,14 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
   }
 
   private String buildTimeoutMessage(long timeWaited, TimeUnit unit) {
-    StringBuilder message = new StringBuilder();
-
+    final StringBuilder message = new StringBuilder();
     message.append(MessageFormat.format("waited {0} ms.",
       unit.convert(timeWaited, TimeUnit.MILLISECONDS)));
     message.append(" Node status: ").append(mconn.connectionsStatus());
     return message.toString();
   }
 
+  @Override
   public void connectionLost(SocketAddress sa) {
     // Don't care.
   }
