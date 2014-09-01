@@ -710,6 +710,8 @@
         <exclude name=".idea/**" />
         <exclude name="*.iml" />
         <exclude name=".gitreview" />
+        <exclude name=".git/**" />
+        <exclude name=".idea/**" />
       </fileset>
     </delete>
   </target>
