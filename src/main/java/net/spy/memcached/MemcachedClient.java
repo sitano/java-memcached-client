@@ -341,10 +341,12 @@ public class MemcachedClient extends SpyObject implements MemcachedClientIF,
     final CachedData co = tc.encode(value);
     final CountDownLatch latch = new CountDownLatch(1);
     final OperationFuture<CASResponse> rv = new OperationFuture<CASResponse>(key, latch, operationTimeout);
-    Operation op = opFact.store(storeType, key, co.getFlags(), exp, co.getData(),
+    final Operation op = opFact.store(storeType, key, co.getFlags(), exp, co.getData(),
       new OperationCallback() {
+        @Override
         public void receivedStatus(Operation op, OperationStatus val) { onReceivedStatus(rv, op, val); }
 
+        @Override
         public void complete(Operation op) { onComplete(client, rv, op, latch, listener); }
       });
     rv.setOperation(op);

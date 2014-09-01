@@ -56,21 +56,21 @@ public interface MemcachedClientIF {
 
   MemcachedClientIF getQuietClient();
 
-  Future<CASResponse> append(String key, Object val);
+  <T> Future<CASResponse> append(String key, T val);
 
   <T> Future<CASResponse> append(String key, T val, Transcoder<T> tc);
 
-  Future<CASResponse> append(long cas, String key, Object val);
+  <T> Future<CASResponse> append(long cas, String key, T val);
 
   <T> Future<CASResponse> append(long cas, String key, T val, Transcoder<T> tc);
 
   <T> Future<CASResponse> append(long cas, String key, T val, Transcoder<T> tc, OperationListener<CASResponse> listener);
 
-  Future<CASResponse> prepend(String key, Object val);
+  <T> Future<CASResponse> prepend(String key, T val);
 
   <T> Future<CASResponse> prepend(String key, T val, Transcoder<T> tc);
 
-  Future<CASResponse> prepend(long cas, String key, Object val);
+  <T> Future<CASResponse> prepend(long cas, String key, T val);
 
   <T> Future<CASResponse> prepend(long cas, String key, T val, Transcoder<T> tc);
 
@@ -85,32 +85,31 @@ public interface MemcachedClientIF {
   <T> Future<CASResponse> asyncCAS(String key, long casId, T value,
       Transcoder<T> tc);
 
-  Future<CASResponse> asyncCAS(String key, long casId, Object value);
+  <T> Future<CASResponse> asyncCAS(String key, long casId, T value);
 
-  <T> CASResponse cas(String key, long casId, int exp, T value,
-      Transcoder<T> tc);
+  <T> CASResponse cas(String key, long casId, int exp, T value, Transcoder<T> tc);
 
-  CASResponse cas(String key, long casId, int exp, Object value);
+  <T> CASResponse cas(String key, long casId, int exp, T value);
 
-  CASResponse cas(String key, long casId, Object value);
+  <T> CASResponse cas(String key, long casId, T value);
 
   <T> Future<CASResponse> add(String key, int exp, T o, Transcoder<T> tc, OperationListener<CASResponse> listener);
 
   <T> Future<CASResponse> add(String key, int exp, T o, Transcoder<T> tc);
 
-  Future<CASResponse> add(String key, int exp, Object o);
+  <T> Future<CASResponse> add(String key, int exp, T o);
 
   <T> Future<CASResponse> set(String key, int exp, T o, Transcoder<T> tc, OperationListener<CASResponse> listener);
 
   <T> Future<CASResponse> set(String key, int exp, T o, Transcoder<T> tc);
 
-  Future<CASResponse> set(String key, int exp, Object o);
+  <T> Future<CASResponse> set(String key, int exp, T o);
 
   <T> Future<CASResponse> replace(String key, int exp, T o, Transcoder<T> tc, OperationListener<CASResponse> listener);
 
   <T> Future<CASResponse> replace(String key, int exp, T o, Transcoder<T> tc);
 
-  Future<CASResponse> replace(String key, int exp, Object o);
+  <T> Future<CASResponse> replace(String key, int exp, T o);
 
   <T> Future<T> asyncGet(String key, Transcoder<T> tc, OperationListener<T> listener);
 
